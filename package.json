@@ -7,6 +7,8 @@
     "geocode": "node scripts/geocode-vendors.js",
     "import": "node scripts/import-vendors.js",
     "sync": "node scripts/sync-firebase.js",
+    "process": "node scripts/process-all.js",
+    "ui": "node server.js",
     "test": "jest"
   },
   "author": "",
@@ -15,9 +17,12 @@
     "chalk": "^4.1.2",
     "commander": "^9.4.1",
     "dotenv": "^16.0.3",
+    "ejs": "^3.1.10",
+    "express": "^4.21.2",
     "firebase": "^9.15.0",
     "firebase-admin": "^11.4.1",
     "joi": "^17.7.0",
+    "multer": "^1.4.5-lts.1",
     "node-geocoder": "^4.2.0",
     "winston": "^3.8.2"
   },
@@ -27,4 +32,4 @@
   "engines": {
     "node": ">=14.0.0"
   }
-} 
+}

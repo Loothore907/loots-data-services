@@ -91,6 +91,17 @@ async function main() {
       process.exit(1);
     }
     
+    // Add this after loading vendors
+    if (vendors.length > 0) {
+      console.log('Sample vendor structure:');
+      const sampleVendor = vendors[0];
+      console.log(JSON.stringify({
+        id: sampleVendor.id,
+        name: sampleVendor.name,
+        location: sampleVendor.location
+      }, null, 2));
+    }
+    
   } catch (error) {
     logger.error('Error during sync process:', error);
     process.exit(1);

@@ -55,7 +55,12 @@ async function main() {
     
     // Filter vendors if skip-existing is enabled
     const vendorsToGeocode = options.skipExisting
-      ? normalizedVendors.filter(v => !v.location.latitude || !v.location.longitude)
+      ? normalizedVendors.filter(v => {
+          // Skip vendors that already have valid coordinates
+          return !(v.location.coordinates && 
+                   v.location.coordinates.latitude && 
+                   v.location.coordinates.longitude);
+        })
       : normalizedVendors;
     
     logger.info(`Geocoding ${vendorsToGeocode.length} vendors (${options.skipExisting ? 'skipping existing coordinates' : 'processing all'})`);

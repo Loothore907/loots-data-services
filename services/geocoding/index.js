@@ -38,8 +38,10 @@ async function geocodeAddress(address) {
     return {
       success: true,
       data: {
-        latitude,
-        longitude,
+        coordinates: {
+          latitude,
+          longitude
+        },
         formattedAddress
       }
     };
@@ -72,7 +74,9 @@ async function batchGeocodeVendors(vendors, options = {}) {
     const batchPromises = batch.map(async (vendor) => {
       try {
         // Skip if already has coordinates
-        if (vendor.location.latitude && vendor.location.longitude) {
+        if (vendor.location.coordinates && 
+            vendor.location.coordinates.latitude && 
+            vendor.location.coordinates.longitude) {
           return vendor;
         }
         
@@ -92,9 +96,8 @@ async function batchGeocodeVendors(vendors, options = {}) {
           ...vendor,
           location: {
             ...vendor.location,
-            latitude: geocodeResult.data.latitude,
-            longitude: geocodeResult.data.longitude,
-            formattedAddress: geocodeResult.data.formattedAddress
+            address: geocodeResult.data.formattedAddress || vendor.location.address,
+            coordinates: geocodeResult.data.coordinates
           }
         };
       } catch (error) {
