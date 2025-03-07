@@ -12,12 +12,13 @@ const logger = require('../utils/logger');
 /**
  * Process vendor data through the updated workflow:
  * 1. Import & normalize
- * 2. Filter for priority regions
- * 3. Clean addresses for geocoding
- * 4. Geocode addresses
- * 5. Validate coordinates
- * 6. Transform schema
- * 7. Sync to Firebase
+ * 2. Filter revoked licenses
+ * 3. Filter for priority regions
+ * 4. Clean addresses for geocoding
+ * 5. Geocode addresses
+ * 6. Validate coordinates
+ * 7. Transform schema
+ * 8. Sync to Firebase (optional)
  * 
  * @param {Object} options Configuration options
  * @returns {Promise<Object>} Processing results
@@ -35,7 +36,7 @@ async function processVendors(options) {
     geocodingConcurrency = 2,           // Concurrent geocoding requests
     geocodingDelay = 200,               // Delay between geocoding batches
     skipExistingCoordinates = true,     // Skip vendors that already have coordinates
-    skipSync = false,                   // Skip Firebase sync step
+    skipSync = true,                    // Skip Firebase sync step (defaults to true)
     geocodingProvider = ''              // Geocoding provider to use
   } = options;
   
@@ -59,17 +60,128 @@ async function processVendors(options) {
     
     logger.info(`Found ${vendors.length} vendors to process`);
     
+    // Archive the original input file
+    const inputDir = path.dirname(input);
+    const inputArchiveDir = path.join(inputDir, 'archive');
+    if (!fs.existsSync(inputArchiveDir)) {
+      fs.mkdirSync(inputArchiveDir, { recursive: true });
+    }
+    
+    const timestamp = new Date().toISOString().replace(/[:\.]/g, '-');
+    const archivedInputPath = path.join(inputArchiveDir, `${path.basename(input, '.json')}_processed_${timestamp}.json`);
+    fs.copyFileSync(input, archivedInputPath);
+    // Only remove if configured/requested
+    fs.unlinkSync(input);
+    logger.info(`Archived input file to ${archivedInputPath}`);
+    
     // Normalize vendors
     const normalizedVendors = vendors.map(vendor => normalizeVendor(vendor));
     logger.info(`Normalized ${normalizedVendors.length} vendors`);
     
-    // STEP 2: Filter for priority regions
-    let priorityVendors = normalizedVendors;
+    // STEP 2: Filter out revoked licenses
+    const activeVendors = normalizedVendors.filter(vendor => 
+      (vendor.status || '').toLowerCase() !== 'revoked'
+    );
+    
+    const revokedVendors = normalizedVendors.filter(vendor => 
+      (vendor.status || '').toLowerCase() === 'revoked'
+    );
+    
+    logger.info(`Found ${normalizedVendors.length} total vendors: ${activeVendors.length} active, ${revokedVendors.length} revoked`);
+    
+    // Save revoked vendors to failures directory if any exist
+    if (revokedVendors.length > 0) {
+      const failuresDir = path.resolve('./data/failures');
+      if (!fs.existsSync(failuresDir)) {
+        fs.mkdirSync(failuresDir, { recursive: true });
+      }
+      
+      // Define the path for the revoked vendors file (non-timestamped for persistence)
+      const revokedPath = path.join(failuresDir, 'revoked_vendors.json');
+      
+      // Check if the file already exists
+      let existingRevoked = [];
+      let newCount = 0;
+      let updatedCount = 0;
+      
+      if (fs.existsSync(revokedPath)) {
+        try {
+          // Load existing revoked vendors
+          existingRevoked = JSON.parse(fs.readFileSync(revokedPath, 'utf8'));
+          logger.info(`Loaded ${existingRevoked.length} existing revoked vendors from ${revokedPath}`);
+          
+          // Create a map of existing vendors by business license for quick lookup
+          const existingMap = new Map();
+          existingRevoked.forEach(vendor => {
+            const key = vendor.business_license || vendor.id;
+            if (key) {
+              existingMap.set(key, vendor);
+            }
+          });
+          
+          // Process new revoked vendors
+          revokedVendors.forEach(vendor => {
+            const key = vendor.business_license || vendor.id;
+            
+            if (!key) {
+              // No identifier, just add as new
+              existingRevoked.push(vendor);
+              newCount++;
+              logger.debug(`Added new revoked vendor without identifier: ${vendor.name || 'unknown'}`);
+            } else if (existingMap.has(key)) {
+              // Update existing vendor
+              const index = existingRevoked.findIndex(v => 
+                (v.business_license || v.id) === key
+              );
+              
+              if (index !== -1) {
+                // Merge the records, keeping the existing data but updating with new data
+                existingRevoked[index] = {
+                  ...existingRevoked[index],
+                  ...vendor,
+                  lastUpdated: new Date().toISOString()
+                };
+                updatedCount++;
+                logger.debug(`Updated existing revoked vendor: ${key} (${vendor.name || 'unknown'})`);
+              }
+            } else {
+              // Add new vendor
+              vendor.lastUpdated = new Date().toISOString();
+              existingRevoked.push(vendor);
+              newCount++;
+              logger.debug(`Added new revoked vendor: ${key} (${vendor.name || 'unknown'})`);
+            }
+          });
+          
+        } catch (error) {
+          logger.warn(`Error reading existing revoked vendors file: ${error.message}`);
+          logger.warn('Creating new revoked vendors file instead');
+          existingRevoked = revokedVendors;
+          newCount = revokedVendors.length;
+        }
+      } else {
+        // No existing file, use all new revoked vendors
+        existingRevoked = revokedVendors;
+        newCount = revokedVendors.length;
+      }
+      
+      // Write the updated revoked vendors file
+      fs.writeFileSync(revokedPath, JSON.stringify(existingRevoked, null, 2));
+      logger.info(`Saved ${existingRevoked.length} revoked vendors to ${revokedPath} (${newCount} new, ${updatedCount} updated)`);
+      
+      // Also create a timestamped backup
+      const revokedBackupPath = path.join(failuresDir, `revoked_vendors_${timestamp}.json`);
+      fs.writeFileSync(revokedBackupPath, JSON.stringify(existingRevoked, null, 2));
+      logger.info(`Created backup of revoked vendors at ${revokedBackupPath}`);
+    }
+    
+    // STEP 3: Filter for priority regions - use active vendors (not revoked)
+    let priorityVendors = activeVendors;
     let nonPriorityVendors = [];
     
     if (priorityOnly) {
-      priorityVendors = normalizedVendors.filter(isPriorityVendor);
-      nonPriorityVendors = normalizedVendors.filter(v => !isPriorityVendor(v));
+      priorityVendors = activeVendors.filter(isPriorityVendor);
+      nonPriorityVendors = activeVendors.filter(v => !isPriorityVendor(v));
       
       logger.info(`Priority filtering: ${priorityVendors.length} priority vendors, ${nonPriorityVendors.length} non-priority vendors`);
       
@@ -93,14 +205,13 @@ async function processVendors(options) {
           fs.mkdirSync(archiveDir, { recursive: true });
         }
         
-        const timestamp = new Date().toISOString().replace(/[:\.]/g, '-');
-        const archivePath = path.join(archiveDir, `non_priority_vendors_${timestamp}.json`);
-        fs.writeFileSync(archivePath, JSON.stringify(nonPriorityVendors, null, 2));
-        logger.info(`Archived ${nonPriorityVendors.length} non-priority vendors to ${archivePath}`);
+        const nonPriorityPath = path.join(archiveDir, `non_priority_vendors_${timestamp}.json`);
+        fs.writeFileSync(nonPriorityPath, JSON.stringify(nonPriorityVendors, null, 2));
+        logger.info(`Archived ${nonPriorityVendors.length} non-priority vendors to ${nonPriorityPath}`);
       }
     }
     
-    // STEP 3: Clean addresses for geocoding
+    // STEP 4: Clean addresses for geocoding
     if (cleanAddresses) {
       logger.info('Cleaning addresses for geocoding');
       
@@ -133,7 +244,7 @@ async function processVendors(options) {
       logger.info(`Cleaned ${cleanedCount} addresses`);
     }
     
-    // STEP 4: Geocode Addresses
+    // STEP 5: Geocode Addresses
     logger.info('Starting geocoding process');
     const vendorsToGeocode = skipExistingCoordinates
       ? priorityVendors.filter(v => !v.hasValidCoordinates && (!v.location.coordinates || !v.location.coordinates.latitude || !v.location.coordinates.longitude))
@@ -157,7 +268,7 @@ async function processVendors(options) {
         })
       : geocodeResult.vendors;
     
-    // STEP 5: Validate coordinates
+    // STEP 6: Validate coordinates
     let validVendors = allVendors;
     let invalidVendors = [];
     
@@ -182,16 +293,38 @@ async function processVendors(options) {
       });
       
       logger.info(`Validation results: ${validVendors.length} valid, ${invalidVendors.length} invalid`);
-      
-      // Save invalid vendors for review
-      if (invalidVendors.length > 0) {
-        const invalidPath = path.join(path.dirname(output), 'invalid-coordinates.json');
-        fs.writeFileSync(invalidPath, JSON.stringify(invalidVendors, null, 2));
-        logger.info(`Saved ${invalidVendors.length} vendors with invalid coordinates to ${invalidPath}`);
-      }
     }
     
-    // STEP 6: Transform Schema
+    // Archive geocoded vendors (both valid and invalid)
+    const geocodedDir = path.join('./data/processed', 'geocoded');
+    if (!fs.existsSync(geocodedDir)) {
+      fs.mkdirSync(geocodedDir, { recursive: true });
+    }
+    
+    const geocodeArchiveDir = path.join(geocodedDir, 'archive');
+    if (!fs.existsSync(geocodeArchiveDir)) {
+      fs.mkdirSync(geocodeArchiveDir, { recursive: true });
+    }
+    
+    // Archive valid coordinates
+    const validGeocodePath = path.join(geocodedDir, 'geocoded-valid-latest.json');
+    fs.writeFileSync(validGeocodePath, JSON.stringify(validVendors, null, 2));
+    
+    const archiveValidPath = path.join(geocodeArchiveDir, `geocoded-valid-${timestamp}.json`);
+    fs.writeFileSync(archiveValidPath, JSON.stringify(validVendors, null, 2));
+    logger.info(`Archived ${validVendors.length} successfully geocoded vendors to ${archiveValidPath}`);
+    
+    // Save invalid coordinates to separate file
+    if (invalidVendors.length > 0) {
+      const invalidGeocodePath = path.join(geocodedDir, 'geocoded-invalid-latest.json');
+      fs.writeFileSync(invalidGeocodePath, JSON.stringify(invalidVendors.map(iv => iv.vendor), null, 2));
+      
+      const archiveInvalidPath = path.join(geocodeArchiveDir, `geocoded-invalid-${timestamp}.json`);
+      fs.writeFileSync(archiveInvalidPath, JSON.stringify(invalidVendors, null, 2));
+      logger.info(`Archived ${invalidVendors.length} vendors with invalid coordinates to ${archiveInvalidPath}`);
+    }
+    
+    // STEP 7: Transform Schema
     logger.info('Transforming vendor schema for Firebase');
     const syncReadyVendors = [];
     const schemaErrors = [];
@@ -239,71 +372,90 @@ async function processVendors(options) {
     fs.writeFileSync(output, JSON.stringify(syncReadyVendors, null, 2));
     logger.info(`Saved ${syncReadyVendors.length} finalized vendors to ${output}`);
     
-    // STEP 7: Sync to Firebase
-    if (skipSync) {
-      logger.info('Skipping Firebase sync as requested');
-      return {
-        success: true,
-        stats: {
-          total: vendors.length,
-          priority: priorityVendors.length,
-          nonPriority: nonPriorityVendors.length,
-          geocoded: validVendors.length,
-          invalid: invalidVendors.length,
-          schemaValid: syncReadyVendors.length,
-          schemaInvalid: schemaErrors.length,
-          synced: 0
-        }
-      };
-    }
-
-    if (syncReadyVendors.length === 0) {
-      logger.warn('No valid vendors to sync to Firebase');
-      return {
-        success: true,
-        stats: {
-          total: vendors.length,
-          priority: priorityVendors.length,
-          nonPriority: nonPriorityVendors.length,
-          geocoded: validVendors.length,
-          invalid: invalidVendors.length,
-          schemaValid: syncReadyVendors.length,
-          schemaInvalid: schemaErrors.length,
-          synced: 0
-        }
-      };
+    // Archive finalized vendors
+    const finalDir = path.join(outputDir, 'archive');
+    if (!fs.existsSync(finalDir)) {
+      fs.mkdirSync(finalDir, { recursive: true });
     }
     
-    logger.info(`Syncing ${syncReadyVendors.length} vendors to Firestore (mode: ${syncMode})`);
+    const archiveFinalPath = path.join(finalDir, `${path.basename(output, '.json')}_${timestamp}.json`);
+    fs.writeFileSync(archiveFinalPath, JSON.stringify(syncReadyVendors, null, 2));
+    logger.info(`Archived ${syncReadyVendors.length} finalized vendors to ${archiveFinalPath}`);
     
-    const syncOptions = {
-      collection,
-      merge: syncMode !== 'overwrite'
+    // STEP 8: Check for pending secondary workflow and optionally sync to Firebase
+    // Check for pending secondary workflow (failed geocoding)
+    const pendingWorkflowCheck = () => {
+      const invalidGeocodePath = path.join('./data/processed/geocoded', 'geocoded-invalid-latest.json');
+      if (fs.existsSync(invalidGeocodePath)) {
+        try {
+          const invalidData = JSON.parse(fs.readFileSync(invalidGeocodePath, 'utf8'));
+          if (Array.isArray(invalidData) && invalidData.length > 0) {
+            return {
+              pending: true,
+              count: invalidData.length,
+              path: invalidGeocodePath
+            };
+          }
+        } catch (error) {
+          logger.warn(`Error checking for pending workflow: ${error.message}`);
+        }
+      }
+      return { pending: false };
     };
     
-    const syncResult = await syncVendorsToFirestore(syncReadyVendors, syncOptions);
+    // Check if there's a pending retry workflow
+    const pendingWorkflow = pendingWorkflowCheck();
     
-    if (!syncResult.success) {
-      throw new Error(`Firebase sync failed: ${syncResult.error}`);
+    // Skip sync if requested or if there's a pending workflow
+    // By default, we skip sync and require explicit sync command
+    let syncResult = { success: true, stats: { successful: 0 } };
+    
+    if (!skipSync && syncReadyVendors.length > 0) {
+      logger.info(`Syncing ${syncReadyVendors.length} vendors to Firestore (mode: ${syncMode})`);
+      
+      const syncOptions = {
+        collection,
+        merge: syncMode !== 'overwrite'
+      };
+      
+      syncResult = await syncVendorsToFirestore(syncReadyVendors, syncOptions);
+      
+      if (!syncResult.success) {
+        throw new Error(`Firebase sync failed: ${syncResult.error}`);
+      }
+      
+      logger.info(`Sync completed successfully: ${syncResult.stats.successful} vendors synced`);
+    } else if (pendingWorkflow.pending) {
+      logger.info(`===============================================================`);
+      logger.info(`ATTENTION: There ${pendingWorkflow.count === 1 ? 'is' : 'are'} ${pendingWorkflow.count} vendor${pendingWorkflow.count === 1 ? '' : 's'} with failed geocoding.`);
+      logger.info(`To process these with the backup geocoder, run:`);
+      logger.info(`  npm run retry-failed`);
+      logger.info(`Once complete, sync the combined results with:`);
+      logger.info(`  npm run sync -- --input=${output}`);
+      logger.info(`===============================================================`);
+    } else if (syncReadyVendors.length > 0) {
+      logger.info(`===============================================================`);
+      logger.info(`Processing complete! To sync the results with Firebase, run:`);
+      logger.info(`  node scripts/sync-firebase.js --input=${output} --no-merge`);
+      logger.info(`===============================================================`);
     }
     
-    logger.info(`Sync completed successfully: ${syncResult.stats.successful} vendors synced`);
-    
-    // Return comprehensive results
+    // Return comprehensive results with all stats
     return {
       success: true,
       stats: {
         total: vendors.length,
         priority: priorityVendors.length,
         nonPriority: nonPriorityVendors.length,
+        revoked: revokedVendors.length,
         geocoded: validVendors.length,
         invalid: invalidVendors.length,
         schemaValid: syncReadyVendors.length,
         schemaInvalid: schemaErrors.length,
-        synced: syncResult.stats.successful
+        synced: syncResult?.stats?.successful || 0,
+        pendingWorkflow: pendingWorkflow.pending ? pendingWorkflow.count : 0
       }
     };
-    
   } catch (error) {
     logger.error('Error in vendor processing workflow:', error);
     return {

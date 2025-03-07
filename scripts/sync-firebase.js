@@ -16,6 +16,7 @@ program
   .option('-b, --batch-size <number>', 'Batch size for Firestore operations', '500')
   .option('--no-merge', 'Replace documents instead of merging', false)
   .option('--dry-run', 'Validate data without writing to Firestore', false)
+  .option('--cleanup', 'Remove input file after successful sync', false)
   .parse(process.argv);
 
 const options = program.opts();
@@ -86,6 +87,16 @@ async function main() {
     
     if (result.success) {
       logger.info(`Sync completed successfully: ${result.stats.successful} vendors synced`);
+      
+      // Optionally remove the input file after successful sync
+      if (options.cleanup) {
+        try {
+          fs.unlinkSync(options.input);
+          logger.info(`Removed original input file at ${options.input} after successful sync`);
+        } catch (error) {
+          logger.warn(`Could not remove input file: ${error.message}`);
+        }
+      }
     } else {
       logger.error(`Sync failed: ${result.error}`);
       process.exit(1);

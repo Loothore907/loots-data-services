@@ -1,0 +1,1934 @@
+[
+  {
+    "id": 10057,
+    "business_license": "1032309",
+    "name": "ALASKAN CANNABIS OUTFITTERS",
+    "license_type": "Retail Marijuana Store",
+    "status": "Active-Operating",
+    "location": {
+      "address": "41945 Sterling Hwy, Homer, AK 99603, UNITED STATES",
+      "coordinates": {
+        "latitude": null,
+        "longitude": null
+      }
+    },
+    "contact": {
+      "phone": null
+    },
+    "hours": {},
+    "deals": [],
+    "isPartner": false,
+    "rating": null,
+    "lastUpdated": "2025-03-06T18:50:34.962888",
+    "hasValidCoordinates": false
+  },
+  {
+    "id": 10067,
+    "business_license": "1032755",
+    "name": "GREEN LEAF",
+    "license_type": "Retail Marijuana Store",
+    "status": "Expired",
+    "location": {
+      "address": "4612 Halibut Point Rd, Sitka, AK 99835, UNITED STATES",
+      "coordinates": {
+        "latitude": null,
+        "longitude": null
+      }
+    },
+    "contact": {
+      "phone": null
+    },
+    "hours": {},
+    "deals": [],
+    "isPartner": false,
+    "rating": null,
+    "lastUpdated": "2025-03-06T18:50:34.962888",
+    "hasValidCoordinates": false
+  },
+  {
+    "id": 10126,
+    "business_license": "1019845",
+    "name": "THE HERBAL CACHE",
+    "license_type": "Retail Marijuana Store",
+    "status": "Expired",
+    "location": {
+      "address": "158 Holmgren Place, Suite 101, Girdwood, AK 99587, UNITED STATES",
+      "coordinates": {
+        "latitude": null,
+        "longitude": null
+      }
+    },
+    "contact": {
+      "phone": null
+    },
+    "hours": {},
+    "deals": [],
+    "isPartner": false,
+    "rating": null,
+    "lastUpdated": "2025-03-06T18:50:34.962888",
+    "hasValidCoordinates": false
+  },
+  {
+    "id": 10138,
+    "business_license": "1019601",
+    "name": "NORTHERN LIGHTS INDOOR GARDENS, LLC",
+    "license_type": "Retail Marijuana Store",
+    "status": "Active-Operating",
+    "location": {
+      "address": "1321 Sawmill Creek Road, Suites N, O, and P, Sitka, AK 99835, UNITED STATES",
+      "coordinates": {
+        "latitude": null,
+        "longitude": null
+      }
+    },
+    "contact": {
+      "phone": null
+    },
+    "hours": {},
+    "deals": [],
+    "isPartner": false,
+    "rating": null,
+    "lastUpdated": "2025-03-06T18:50:34.962888",
+    "hasValidCoordinates": false
+  },
+  {
+    "id": 10149,
+    "business_license": "1046490",
+    "name": "REMEDY SHOPPE, LLC",
+    "license_type": "Retail Marijuana Store",
+    "status": "Active-Operating",
+    "location": {
+      "address": "307 THIRD AVENUE, Skagway, AK 99840, UNITED STATES",
+      "coordinates": {
+        "latitude": null,
+        "longitude": null
+      }
+    },
+    "contact": {
+      "phone": null
+    },
+    "hours": {},
+    "deals": [],
+    "isPartner": false,
+    "rating": null,
+    "lastUpdated": "2025-03-06T18:50:34.962888",
+    "hasValidCoordinates": false
+  },
+  {
+    "id": 10163,
+    "business_license": "1033148",
+    "name": "THE 420",
+    "license_type": "Retail Marijuana Store",
+    "status": "Active-Operating",
+    "location": {
+      "address": "307 N. Nordic Dr., Petersburg, AK 99833, UNITED STATES",
+      "coordinates": {
+        "latitude": null,
+        "longitude": null
+      }
+    },
+    "contact": {
+      "phone": null
+    },
+    "hours": {},
+    "deals": [],
+    "isPartner": false,
+    "rating": null,
+    "lastUpdated": "2025-03-06T18:50:34.962888",
+    "hasValidCoordinates": false
+  },
+  {
+    "id": 10173,
+    "business_license": "1032590",
+    "name": "HERBAL OUTFITTERS, LLC",
+    "license_type": "Retail Marijuana Store",
+    "status": "Active-Operating",
+    "location": {
+      "address": "165 Fairbanks Drive, Lower Floor, Valdez, AK 99686, UNITED STATES",
+      "coordinates": {
+        "latitude": null,
+        "longitude": null
+      }
+    },
+    "contact": {
+      "phone": null
+    },
+    "hours": {},
+    "deals": [],
+    "isPartner": false,
+    "rating": null,
+    "lastUpdated": "2025-03-06T18:50:34.962888",
+    "hasValidCoordinates": false
+  },
+  {
+    "id": 10200,
+    "business_license": "1033845",
+    "name": "HAPPY CANNABIS",
+    "license_type": "Retail Marijuana Store",
+    "status": "Active-Operating",
+    "location": {
+      "address": "225 South Front Street, Wrangell, AK 99929, UNITED STATES",
+      "coordinates": {
+        "latitude": null,
+        "longitude": null
+      }
+    },
+    "contact": {
+      "phone": null
+    },
+    "hours": {},
+    "deals": [],
+    "isPartner": false,
+    "rating": null,
+    "lastUpdated": "2025-03-06T18:50:34.962888",
+    "hasValidCoordinates": false
+  },
+  {
+    "id": 10220,
+    "business_license": "2114050",
+    "name": "Weed Dudes",
+    "license_type": "Retail Marijuana Store",
+    "status": "Active-Operating",
+    "location": {
+      "address": "1321 Sawmill Creek Road, Suite #J & K, Sitka, AK 99835, UNITED STATES",
+      "coordinates": {
+        "latitude": null,
+        "longitude": null
+      }
+    },
+    "contact": {
+      "phone": null
+    },
+    "hours": {},
+    "deals": [],
+    "isPartner": false,
+    "rating": null,
+    "lastUpdated": "2025-03-06T18:50:34.962888",
+    "hasValidCoordinates": false
+  },
+  {
+    "id": 10273,
+    "business_license": "1056442",
+    "name": "PINE STREET CANNABIS COMPANY",
+    "license_type": "Retail Marijuana Store",
+    "status": "Active-Operating",
+    "location": {
+      "address": "36130 Pine Street, Soldotna, AK 99669, UNITED STATES",
+      "coordinates": {
+        "latitude": null,
+        "longitude": null
+      }
+    },
+    "contact": {
+      "phone": null
+    },
+    "hours": {},
+    "deals": [],
+    "isPartner": false,
+    "rating": null,
+    "lastUpdated": "2025-03-06T18:50:34.962888",
+    "hasValidCoordinates": false
+  },
+  {
+    "id": 10590,
+    "business_license": "2112346",
+    "name": "Cannabis Corner",
+    "license_type": "Retail Marijuana Store",
+    "status": "Active-Operating",
+    "location": {
+      "address": "9735 Mud Bay Rd, Ketchikan, AK 99901, UNITED STATES",
+      "coordinates": {
+        "latitude": null,
+        "longitude": null
+      }
+    },
+    "contact": {
+      "phone": null
+    },
+    "hours": {},
+    "deals": [],
+    "isPartner": false,
+    "rating": null,
+    "lastUpdated": "2025-03-06T18:50:34.962888",
+    "hasValidCoordinates": false
+  },
+  {
+    "id": 10831,
+    "business_license": "1036025",
+    "name": "HIGH BUSH BUDS",
+    "license_type": "Retail Marijuana Store",
+    "status": "Active-Operating",
+    "location": {
+      "address": "36312 Irons Ave., Suite 2, Soldotna, AK 99669, UNITED STATES",
+      "coordinates": {
+        "latitude": null,
+        "longitude": null
+      }
+    },
+    "contact": {
+      "phone": null
+    },
+    "hours": {},
+    "deals": [],
+    "isPartner": false,
+    "rating": null,
+    "lastUpdated": "2025-03-06T18:50:34.962888",
+    "hasValidCoordinates": false
+  },
+  {
+    "id": 10873,
+    "business_license": "1040109",
+    "name": "THE STONEY MOOSE",
+    "license_type": "Retail Marijuana Store",
+    "status": "Active-Operating",
+    "location": {
+      "address": "127 Stedman St., Ketchikan, AK 99901, UNITED STATES",
+      "coordinates": {
+        "latitude": null,
+        "longitude": null
+      }
+    },
+    "contact": {
+      "phone": null
+    },
+    "hours": {},
+    "deals": [],
+    "isPartner": false,
+    "rating": null,
+    "lastUpdated": "2025-03-06T18:50:34.962888",
+    "hasValidCoordinates": false
+  },
+  {
+    "id": 10883,
+    "business_license": "2130116",
+    "name": "Rainforest Cannabis",
+    "license_type": "Retail Marijuana Store",
+    "status": "Active-Operating",
+    "location": {
+      "address": "726 Water Street, Ketchikan, AK 99901, UNITED STATES",
+      "coordinates": {
+        "latitude": null,
+        "longitude": null
+      }
+    },
+    "contact": {
+      "phone": null
+    },
+    "hours": {},
+    "deals": [],
+    "isPartner": false,
+    "rating": null,
+    "lastUpdated": "2025-03-06T18:50:34.962888",
+    "hasValidCoordinates": false
+  },
+  {
+    "id": 10901,
+    "business_license": "1040691",
+    "name": "THE HIGH EXPEDITION COMPANY",
+    "license_type": "Retail Marijuana Store",
+    "status": "Active-Operating",
+    "location": {
+      "address": "13465 E Main St., Talkeetna, AK 99676, UNITED STATES",
+      "coordinates": {
+        "latitude": null,
+        "longitude": null
+      }
+    },
+    "contact": {
+      "phone": null
+    },
+    "hours": {},
+    "deals": [],
+    "isPartner": false,
+    "rating": null,
+    "lastUpdated": "2025-03-06T18:50:34.962888",
+    "hasValidCoordinates": false
+  },
+  {
+    "id": 11050,
+    "business_license": "1041697",
+    "name": "HOUSTON GRASS STATION LLC",
+    "license_type": "Retail Marijuana Store",
+    "status": "Active-Operating",
+    "location": {
+      "address": "15231 W Parks Hwy, Houston, AK 99694, UNITED STATES",
+      "coordinates": {
+        "latitude": null,
+        "longitude": null
+      }
+    },
+    "contact": {
+      "phone": null
+    },
+    "hours": {},
+    "deals": [],
+    "isPartner": false,
+    "rating": null,
+    "lastUpdated": "2025-03-06T18:50:34.962888",
+    "hasValidCoordinates": false
+  },
+  {
+    "id": 11119,
+    "business_license": "2129663",
+    "name": "Alaskan Grown Cannabis",
+    "license_type": "Retail Marijuana Store",
+    "status": "Active-Operating",
+    "location": {
+      "address": "303-C West E. Street, Nome, AK 99762, UNITED STATES",
+      "coordinates": {
+        "latitude": null,
+        "longitude": null
+      }
+    },
+    "contact": {
+      "phone": null
+    },
+    "hours": {},
+    "deals": [],
+    "isPartner": false,
+    "rating": null,
+    "lastUpdated": "2025-03-06T18:50:34.962888",
+    "hasValidCoordinates": false
+  },
+  {
+    "id": 11140,
+    "business_license": "1042820",
+    "name": "FAT TOPS, LLC.",
+    "license_type": "Retail Marijuana Store",
+    "status": "Active-Operating",
+    "location": {
+      "address": "36380 Murray Lane, Soldotna, AK 99669, UNITED STATES",
+      "coordinates": {
+        "latitude": null,
+        "longitude": null
+      }
+    },
+    "contact": {
+      "phone": null
+    },
+    "hours": {},
+    "deals": [],
+    "isPartner": false,
+    "rating": null,
+    "lastUpdated": "2025-03-06T18:50:34.962888",
+    "hasValidCoordinates": false
+  },
+  {
+    "id": 11382,
+    "business_license": "1030318",
+    "name": "DENALI'S CANNABIS CACHE LLC",
+    "license_type": "Retail Marijuana Store",
+    "status": "Active-Operating",
+    "location": {
+      "address": "M.M. 238.9 George Parks HWY., Suite 420, Denali National Park, AK 99755, UNITED STATES",
+      "coordinates": {
+        "latitude": null,
+        "longitude": null
+      }
+    },
+    "contact": {
+      "phone": null
+    },
+    "hours": {},
+    "deals": [],
+    "isPartner": false,
+    "rating": null,
+    "lastUpdated": "2025-03-06T18:50:34.962888",
+    "hasValidCoordinates": false
+  },
+  {
+    "id": 11509,
+    "business_license": "1033200",
+    "name": "PERMAFROST DISTRIBUTORS",
+    "license_type": "Retail Marijuana Store",
+    "status": "Active-Operating",
+    "location": {
+      "address": "32630 June Dr., Sterling, AK 99672, UNITED STATES",
+      "coordinates": {
+        "latitude": null,
+        "longitude": null
+      }
+    },
+    "contact": {
+      "phone": null
+    },
+    "hours": {},
+    "deals": [],
+    "isPartner": false,
+    "rating": null,
+    "lastUpdated": "2025-03-06T18:50:34.962888",
+    "hasValidCoordinates": false
+  },
+  {
+    "id": 12635,
+    "business_license": "1033365",
+    "name": "GREEN DEGREE",
+    "license_type": "Retail Marijuana Store",
+    "status": "Active-Operating",
+    "location": {
+      "address": "13856 N. GLENN HWY, (Northern Portion of the Building), SUTTON, AK 99674, UNITED STATES",
+      "coordinates": {
+        "latitude": null,
+        "longitude": null
+      }
+    },
+    "contact": {
+      "phone": null
+    },
+    "hours": {},
+    "deals": [],
+    "isPartner": false,
+    "rating": null,
+    "lastUpdated": "2025-03-06T18:50:34.962888",
+    "hasValidCoordinates": false
+  },
+  {
+    "id": 13382,
+    "business_license": "1054904",
+    "name": "EAST RIP",
+    "license_type": "Retail Marijuana Store",
+    "status": "Active-Operating",
+    "location": {
+      "address": "10767 KENAI SPUR HWY, SUITE D, KENAI, AK 99611, UNITED STATES",
+      "coordinates": {
+        "latitude": null,
+        "longitude": null
+      }
+    },
+    "contact": {
+      "phone": null
+    },
+    "hours": {},
+    "deals": [],
+    "isPartner": false,
+    "rating": null,
+    "lastUpdated": "2025-03-06T18:50:34.962888",
+    "hasValidCoordinates": false
+  },
+  {
+    "id": 15061,
+    "business_license": "1060238",
+    "name": "WINTER GREENS LLC",
+    "license_type": "Retail Marijuana Store",
+    "status": "Active-Operating",
+    "location": {
+      "address": "75 beach road, haines, AK 99827, UNITED STATES",
+      "coordinates": {
+        "latitude": null,
+        "longitude": null
+      }
+    },
+    "contact": {
+      "phone": null
+    },
+    "hours": {},
+    "deals": [],
+    "isPartner": false,
+    "rating": null,
+    "lastUpdated": "2025-03-06T18:50:34.962888",
+    "hasValidCoordinates": false
+  },
+  {
+    "id": 15393,
+    "business_license": "1037289",
+    "name": "MAJESTIC GARDENS LLC",
+    "license_type": "Retail Marijuana Store",
+    "status": "Active-Operating",
+    "location": {
+      "address": "12656 Kenai Spur Hwy, Kenai, AK 99611, UNITED STATES",
+      "coordinates": {
+        "latitude": null,
+        "longitude": null
+      }
+    },
+    "contact": {
+      "phone": null
+    },
+    "hours": {},
+    "deals": [],
+    "isPartner": false,
+    "rating": null,
+    "lastUpdated": "2025-03-06T18:50:34.962888",
+    "hasValidCoordinates": false
+  },
+  {
+    "id": 15916,
+    "business_license": "2205494",
+    "name": "Red Run Cannabis Company",
+    "license_type": "Retail Marijuana Store",
+    "status": "Active-Operating",
+    "location": {
+      "address": "42106 Kalifornsky Beach Road, (Log cabin on SE portion nearest highway), Soldotna, AK 99669, UNITED STATES",
+      "coordinates": {
+        "latitude": null,
+        "longitude": null
+      }
+    },
+    "contact": {
+      "phone": null
+    },
+    "hours": {},
+    "deals": [],
+    "isPartner": false,
+    "rating": null,
+    "lastUpdated": "2025-03-06T18:50:34.962888",
+    "hasValidCoordinates": false
+  },
+  {
+    "id": 16184,
+    "business_license": "1063483",
+    "name": "THEE TREASURE CHEST LLC.",
+    "license_type": "Retail Marijuana Store",
+    "status": "Active-Operating",
+    "location": {
+      "address": "1000 Water St., Craig, AK 99921, UNITED STATES",
+      "coordinates": {
+        "latitude": null,
+        "longitude": null
+      }
+    },
+    "contact": {
+      "phone": null
+    },
+    "hours": {},
+    "deals": [],
+    "isPartner": false,
+    "rating": null,
+    "lastUpdated": "2025-03-06T18:50:34.962888",
+    "hasValidCoordinates": false
+  },
+  {
+    "id": 16529,
+    "business_license": "1065154",
+    "name": "GOOD BUDS LLC",
+    "license_type": "Retail Marijuana Store",
+    "status": "Active-Operating",
+    "location": {
+      "address": "11770 Seward highway Suite 2, Seward, AK 99664, UNITED STATES",
+      "coordinates": {
+        "latitude": null,
+        "longitude": null
+      }
+    },
+    "contact": {
+      "phone": null
+    },
+    "hours": {},
+    "deals": [],
+    "isPartner": false,
+    "rating": null,
+    "lastUpdated": "2025-03-06T18:50:34.962888",
+    "hasValidCoordinates": false
+  },
+  {
+    "id": 16915,
+    "business_license": "1066517",
+    "name": "BRISTOL BAY BUD COMPANY",
+    "license_type": "Retail Marijuana Store",
+    "status": "Active-Operating",
+    "location": {
+      "address": "233 Airport Road, Dillingham, AK 99576, UNITED STATES",
+      "coordinates": {
+        "latitude": null,
+        "longitude": null
+      }
+    },
+    "contact": {
+      "phone": null
+    },
+    "hours": {},
+    "deals": [],
+    "isPartner": false,
+    "rating": null,
+    "lastUpdated": "2025-03-06T18:50:34.962888",
+    "hasValidCoordinates": false
+  },
+  {
+    "id": 17077,
+    "business_license": "1040267",
+    "name": "GRASS STATION 49",
+    "license_type": "Retail Marijuana Store",
+    "status": "Active-Operating",
+    "location": {
+      "address": "223 Front Street, Suite B., Nome, AK 99762, UNITED STATES",
+      "coordinates": {
+        "latitude": null,
+        "longitude": null
+      }
+    },
+    "contact": {
+      "phone": null
+    },
+    "hours": {},
+    "deals": [],
+    "isPartner": false,
+    "rating": null,
+    "lastUpdated": "2025-03-06T18:50:34.962888",
+    "hasValidCoordinates": false
+  },
+  {
+    "id": 17176,
+    "business_license": "1067892",
+    "name": "STATE OF MIND CANNABIS COMPANY",
+    "license_type": "Retail Marijuana Store",
+    "status": "Active-Pending Inspection",
+    "location": {
+      "address": "33508 LINCOLN AVENUE, #C, Seward, AK 99664, UNITED STATES",
+      "coordinates": {
+        "latitude": null,
+        "longitude": null
+      }
+    },
+    "contact": {
+      "phone": null
+    },
+    "hours": {},
+    "deals": [],
+    "isPartner": false,
+    "rating": null,
+    "lastUpdated": "2025-03-06T18:50:34.962888",
+    "hasValidCoordinates": false
+  },
+  {
+    "id": 17204,
+    "business_license": "2125467",
+    "name": "worner brothers outpost",
+    "license_type": "Retail Marijuana Store",
+    "status": "Active-Operating",
+    "location": {
+      "address": "50110 Sterling Hwy, Soldotna, AK 99669, UNITED STATES",
+      "coordinates": {
+        "latitude": null,
+        "longitude": null
+      }
+    },
+    "contact": {
+      "phone": null
+    },
+    "hours": {},
+    "deals": [],
+    "isPartner": false,
+    "rating": null,
+    "lastUpdated": "2025-03-06T18:50:34.962888",
+    "hasValidCoordinates": false
+  },
+  {
+    "id": 17764,
+    "business_license": "1070263",
+    "name": "ALASKAN GROWN CANNABIS",
+    "license_type": "Retail Marijuana Store",
+    "status": "Active-Operating",
+    "location": {
+      "address": "585A 3rd Ave., Kotzebue, AK 99752, UNITED STATES",
+      "coordinates": {
+        "latitude": null,
+        "longitude": null
+      }
+    },
+    "contact": {
+      "phone": null
+    },
+    "hours": {},
+    "deals": [],
+    "isPartner": false,
+    "rating": null,
+    "lastUpdated": "2025-03-06T18:50:34.962888",
+    "hasValidCoordinates": false
+  },
+  {
+    "id": 17808,
+    "business_license": "1069832",
+    "name": "KENAI RIVER CANNABIS",
+    "license_type": "Retail Marijuana Store",
+    "status": "Active-Operating",
+    "location": {
+      "address": "14429 Kenai Spur Highway, Kenai, AK 99611, UNITED STATES",
+      "coordinates": {
+        "latitude": null,
+        "longitude": null
+      }
+    },
+    "contact": {
+      "phone": null
+    },
+    "hours": {},
+    "deals": [],
+    "isPartner": false,
+    "rating": null,
+    "lastUpdated": "2025-03-06T18:50:34.962888",
+    "hasValidCoordinates": false
+  },
+  {
+    "id": 18545,
+    "business_license": "1067691",
+    "name": "NOME GROWN LLC",
+    "license_type": "Retail Marijuana Store",
+    "status": "Active-Operating",
+    "location": {
+      "address": "605 W. 2nd. Ave., NOME, AK 99762, UNITED STATES",
+      "coordinates": {
+        "latitude": null,
+        "longitude": null
+      }
+    },
+    "contact": {
+      "phone": null
+    },
+    "hours": {},
+    "deals": [],
+    "isPartner": false,
+    "rating": null,
+    "lastUpdated": "2025-03-06T18:50:34.962888",
+    "hasValidCoordinates": false
+  },
+  {
+    "id": 18735,
+    "business_license": "1032729",
+    "name": "ALASKABUDS, LLC",
+    "license_type": "Retail Marijuana Store",
+    "status": "Active-Operating",
+    "location": {
+      "address": "660 Third Ave, Suite B, Bethel, AK 99559, UNITED STATES",
+      "coordinates": {
+        "latitude": null,
+        "longitude": null
+      }
+    },
+    "contact": {
+      "phone": null
+    },
+    "hours": {},
+    "deals": [],
+    "isPartner": false,
+    "rating": null,
+    "lastUpdated": "2025-03-06T18:50:34.962888",
+    "hasValidCoordinates": false
+  },
+  {
+    "id": 18929,
+    "business_license": "1082271",
+    "name": "ALASKA CANNABIS COMPANY",
+    "license_type": "Retail Marijuana Store",
+    "status": "Active-Operating",
+    "location": {
+      "address": "43280 Kenai Spur Highway, Unit E, Nikiski, AK 99635, UNITED STATES",
+      "coordinates": {
+        "latitude": null,
+        "longitude": null
+      }
+    },
+    "contact": {
+      "phone": null
+    },
+    "hours": {},
+    "deals": [],
+    "isPartner": false,
+    "rating": null,
+    "lastUpdated": "2025-03-06T18:50:34.962888",
+    "hasValidCoordinates": false
+  },
+  {
+    "id": 19277,
+    "business_license": "1078189",
+    "name": "THE HERBAL CACHE LLC",
+    "license_type": "Retail Marijuana Store",
+    "status": "Active-Operating",
+    "location": {
+      "address": "158 Holmgren Place Suite 101, Girdwood, AK 99587, UNITED STATES",
+      "coordinates": {
+        "latitude": null,
+        "longitude": null
+      }
+    },
+    "contact": {
+      "phone": null
+    },
+    "hours": {},
+    "deals": [],
+    "isPartner": false,
+    "rating": null,
+    "lastUpdated": "2025-03-06T18:50:34.962888",
+    "hasValidCoordinates": false
+  },
+  {
+    "id": 19658,
+    "business_license": "1088016",
+    "name": "DEJAVU CANNABIS COMPANY",
+    "license_type": "Retail Marijuana Store",
+    "status": "Active-Operating",
+    "location": {
+      "address": "11676 west rezanof drive, Kodiak, AK 99615, UNITED STATES",
+      "coordinates": {
+        "latitude": null,
+        "longitude": null
+      }
+    },
+    "contact": {
+      "phone": null
+    },
+    "hours": {},
+    "deals": [],
+    "isPartner": false,
+    "rating": null,
+    "lastUpdated": "2025-03-06T18:50:34.962888",
+    "hasValidCoordinates": false
+  },
+  {
+    "id": 19898,
+    "business_license": "2098780",
+    "name": "AKO FARMS DIRECT",
+    "license_type": "Retail Marijuana Store",
+    "status": "Active-Operating",
+    "location": {
+      "address": "1210 Beardslee Way, Sitka, AK 99835, UNITED STATES",
+      "coordinates": {
+        "latitude": null,
+        "longitude": null
+      }
+    },
+    "contact": {
+      "phone": null
+    },
+    "hours": {},
+    "deals": [],
+    "isPartner": false,
+    "rating": null,
+    "lastUpdated": "2025-03-06T18:50:34.962888",
+    "hasValidCoordinates": false
+  },
+  {
+    "id": 19899,
+    "business_license": "1090969",
+    "name": "AKO FARMS, LLC.",
+    "license_type": "Retail Marijuana Store",
+    "status": "Returned",
+    "location": {
+      "address": "1210 Beardslee Way, Sitka, AK 99835, UNITED STATES",
+      "coordinates": {
+        "latitude": null,
+        "longitude": null
+      }
+    },
+    "contact": {
+      "phone": null
+    },
+    "hours": {},
+    "deals": [],
+    "isPartner": false,
+    "rating": null,
+    "lastUpdated": "2025-03-06T18:50:34.962888",
+    "hasValidCoordinates": false
+  },
+  {
+    "id": 20113,
+    "business_license": "1093390",
+    "name": "HIGH RISE, LLC",
+    "license_type": "Retail Marijuana Store",
+    "status": "Active-Operating",
+    "location": {
+      "address": "104 Center Ave., Suite 102, Kodiak, AK 99615, UNITED STATES",
+      "coordinates": {
+        "latitude": null,
+        "longitude": null
+      }
+    },
+    "contact": {
+      "phone": null
+    },
+    "hours": {},
+    "deals": [],
+    "isPartner": false,
+    "rating": null,
+    "lastUpdated": "2025-03-06T18:50:34.962888",
+    "hasValidCoordinates": false
+  },
+  {
+    "id": 20221,
+    "business_license": "2100881",
+    "name": "Denali Grass Company",
+    "license_type": "Retail Marijuana Store",
+    "status": "Active-Operating",
+    "location": {
+      "address": "Milepost 248.5 Parks Highway, Suite A, Healy, AK 99743, UNITED STATES",
+      "coordinates": {
+        "latitude": null,
+        "longitude": null
+      }
+    },
+    "contact": {
+      "phone": null
+    },
+    "hours": {},
+    "deals": [],
+    "isPartner": false,
+    "rating": null,
+    "lastUpdated": "2025-03-06T18:50:34.962888",
+    "hasValidCoordinates": false
+  },
+  {
+    "id": 21069,
+    "business_license": "2083424",
+    "name": "Wildflower",
+    "license_type": "Retail Marijuana Store",
+    "status": "Active-Operating",
+    "location": {
+      "address": "158 Alimaq Dr, Kodiak, AK 99615, UNITED STATES",
+      "coordinates": {
+        "latitude": null,
+        "longitude": null
+      }
+    },
+    "contact": {
+      "phone": null
+    },
+    "hours": {},
+    "deals": [],
+    "isPartner": false,
+    "rating": null,
+    "lastUpdated": "2025-03-06T18:50:34.962888",
+    "hasValidCoordinates": false
+  },
+  {
+    "id": 21170,
+    "business_license": "2084402",
+    "name": "Green Zone",
+    "license_type": "Retail Marijuana Store",
+    "status": "Active-Operating",
+    "location": {
+      "address": "543 Bison St, Kotzebue, AK 99762, UNITED STATES",
+      "coordinates": {
+        "latitude": null,
+        "longitude": null
+      }
+    },
+    "contact": {
+      "phone": null
+    },
+    "hours": {},
+    "deals": [],
+    "isPartner": false,
+    "rating": null,
+    "lastUpdated": "2025-03-06T18:50:34.962888",
+    "hasValidCoordinates": false
+  },
+  {
+    "id": 21227,
+    "business_license": "2084675",
+    "name": "Kusko Kush",
+    "license_type": "Retail Marijuana Store",
+    "status": "Active-Operating",
+    "location": {
+      "address": "781 3rd Avenue, Bethel, AK 99559, UNITED STATES",
+      "coordinates": {
+        "latitude": null,
+        "longitude": null
+      }
+    },
+    "contact": {
+      "phone": null
+    },
+    "hours": {},
+    "deals": [],
+    "isPartner": false,
+    "rating": null,
+    "lastUpdated": "2025-03-06T18:50:34.962888",
+    "hasValidCoordinates": false
+  },
+  {
+    "id": 22294,
+    "business_license": "1070263",
+    "name": "ALASKAN GROWN CANNABIS",
+    "license_type": "Retail Marijuana Store",
+    "status": "Active-Operating",
+    "location": {
+      "address": "14477 Sterling Highway, Ninilchik, AK 99639, UNITED STATES",
+      "coordinates": {
+        "latitude": null,
+        "longitude": null
+      }
+    },
+    "contact": {
+      "phone": null
+    },
+    "hours": {},
+    "deals": [],
+    "isPartner": false,
+    "rating": null,
+    "lastUpdated": "2025-03-06T18:50:34.962888",
+    "hasValidCoordinates": false
+  },
+  {
+    "id": 23627,
+    "business_license": "2094627",
+    "name": "Happy Walrus Enterprises",
+    "license_type": "Retail Marijuana Store",
+    "status": "Active-Pending Inspection",
+    "location": {
+      "address": "310 Agviq Street, Point Hope, AK 99766, UNITED STATES",
+      "coordinates": {
+        "latitude": null,
+        "longitude": null
+      }
+    },
+    "contact": {
+      "phone": null
+    },
+    "hours": {},
+    "deals": [],
+    "isPartner": false,
+    "rating": null,
+    "lastUpdated": "2025-03-06T18:50:34.962888",
+    "hasValidCoordinates": false
+  },
+  {
+    "id": 23694,
+    "business_license": "2094945",
+    "name": "Greenstar Flower Outlet",
+    "license_type": "Retail Marijuana Store",
+    "status": "Active-Operating",
+    "location": {
+      "address": "40593 Kalifornsky Beach Rd, Suite B, Kenai, AK 99611, UNITED STATES",
+      "coordinates": {
+        "latitude": null,
+        "longitude": null
+      }
+    },
+    "contact": {
+      "phone": null
+    },
+    "hours": {},
+    "deals": [],
+    "isPartner": false,
+    "rating": null,
+    "lastUpdated": "2025-03-06T18:50:34.962888",
+    "hasValidCoordinates": false
+  },
+  {
+    "id": 23777,
+    "business_license": "1065302",
+    "name": "ARCTIC HERBERY",
+    "license_type": "Retail Marijuana Store",
+    "status": "Active-Operating",
+    "location": {
+      "address": "16021 Sterling Highway, Building #2, Cooper Landing, AK 99572, UNITED STATES",
+      "coordinates": {
+        "latitude": null,
+        "longitude": null
+      }
+    },
+    "contact": {
+      "phone": null
+    },
+    "hours": {},
+    "deals": [],
+    "isPartner": false,
+    "rating": null,
+    "lastUpdated": "2025-03-06T18:50:34.962888",
+    "hasValidCoordinates": false
+  },
+  {
+    "id": 23810,
+    "business_license": "1042820",
+    "name": "FAT TOPS, LLC.",
+    "license_type": "Retail Marijuana Store",
+    "status": "Active-Operating",
+    "location": {
+      "address": "35975 Kenai Spur Hwy., Soldotna, AK 99669, UNITED STATES",
+      "coordinates": {
+        "latitude": null,
+        "longitude": null
+      }
+    },
+    "contact": {
+      "phone": null
+    },
+    "hours": {},
+    "deals": [],
+    "isPartner": false,
+    "rating": null,
+    "lastUpdated": "2025-03-06T18:50:34.962888",
+    "hasValidCoordinates": false
+  },
+  {
+    "id": 23813,
+    "business_license": "2164234",
+    "name": "Alaskan Grown Cannabis",
+    "license_type": "Retail Marijuana Store",
+    "status": "Active-Operating",
+    "location": {
+      "address": "4326 Nathaniel Olemaun Jr. Boulevard, Utqiagvik, AK 99723, UNITED STATES",
+      "coordinates": {
+        "latitude": null,
+        "longitude": null
+      }
+    },
+    "contact": {
+      "phone": null
+    },
+    "hours": {},
+    "deals": [],
+    "isPartner": false,
+    "rating": null,
+    "lastUpdated": "2025-03-06T18:50:34.962888",
+    "hasValidCoordinates": false
+  },
+  {
+    "id": 23934,
+    "business_license": "2086134",
+    "name": "Pipe and Leaf: Premium Alaskan Cannabis",
+    "license_type": "Retail Marijuana Store",
+    "status": "Active-Operating",
+    "location": {
+      "address": "28011 Old Parks Highway, Suite 1, Willow, AK 99688, UNITED STATES",
+      "coordinates": {
+        "latitude": null,
+        "longitude": null
+      }
+    },
+    "contact": {
+      "phone": null
+    },
+    "hours": {},
+    "deals": [],
+    "isPartner": false,
+    "rating": null,
+    "lastUpdated": "2025-03-06T18:50:34.962888",
+    "hasValidCoordinates": false
+  },
+  {
+    "id": 24097,
+    "business_license": "1043289",
+    "name": "ALASKA HARVEST COMPANY LLC",
+    "license_type": "Retail Marijuana Store",
+    "status": "Active-Operating",
+    "location": {
+      "address": "43837 Kalifornsky Beach RD, Soldotna, AK 99669, UNITED STATES",
+      "coordinates": {
+        "latitude": null,
+        "longitude": null
+      }
+    },
+    "contact": {
+      "phone": null
+    },
+    "hours": {},
+    "deals": [],
+    "isPartner": false,
+    "rating": null,
+    "lastUpdated": "2025-03-06T18:50:34.962888",
+    "hasValidCoordinates": false
+  },
+  {
+    "id": 24383,
+    "business_license": "2098768",
+    "name": "Primo",
+    "license_type": "Retail Marijuana Store",
+    "status": "Active-Operating",
+    "location": {
+      "address": "12870 Old Seward Highway, Space 105, Anchorage, AK 99515, UNITED STATES",
+      "coordinates": {
+        "latitude": null,
+        "longitude": null
+      }
+    },
+    "contact": {
+      "phone": null
+    },
+    "hours": {},
+    "deals": [],
+    "isPartner": false,
+    "rating": null,
+    "lastUpdated": "2025-03-06T18:50:34.962888",
+    "hasValidCoordinates": false
+  },
+  {
+    "id": 25324,
+    "business_license": "2104183",
+    "name": "Alaskan Grown Cannabis",
+    "license_type": "Retail Marijuana Store",
+    "status": "Active-Operating",
+    "location": {
+      "address": "213 West A Street, Dillingham, AK 99576, UNITED STATES",
+      "coordinates": {
+        "latitude": null,
+        "longitude": null
+      }
+    },
+    "contact": {
+      "phone": null
+    },
+    "hours": {},
+    "deals": [],
+    "isPartner": false,
+    "rating": null,
+    "lastUpdated": "2025-03-06T18:50:34.962888",
+    "hasValidCoordinates": false
+  },
+  {
+    "id": 25902,
+    "business_license": "2108036",
+    "name": "Tl'oh Suu by Green Degree",
+    "license_type": "Retail Marijuana Store",
+    "status": "Active-Operating",
+    "location": {
+      "address": "Mile 1264.1 Alaska Highway, Northway, AK 99764, UNITED STATES",
+      "coordinates": {
+        "latitude": null,
+        "longitude": null
+      }
+    },
+    "contact": {
+      "phone": null
+    },
+    "hours": {},
+    "deals": [],
+    "isPartner": false,
+    "rating": null,
+    "lastUpdated": "2025-03-06T18:50:34.962888",
+    "hasValidCoordinates": false
+  },
+  {
+    "id": 27317,
+    "business_license": "2115576",
+    "name": "Talkeetna Connection",
+    "license_type": "Retail Marijuana Store",
+    "status": "Active-Operating",
+    "location": {
+      "address": "39209 S Talkeetna Spur Rd, Talkeetna, AK 99676, UNITED STATES",
+      "coordinates": {
+        "latitude": null,
+        "longitude": null
+      }
+    },
+    "contact": {
+      "phone": null
+    },
+    "hours": {},
+    "deals": [],
+    "isPartner": false,
+    "rating": null,
+    "lastUpdated": "2025-03-06T18:50:34.962888",
+    "hasValidCoordinates": false
+  },
+  {
+    "id": 27532,
+    "business_license": "2111699",
+    "name": "Alaska Vibes",
+    "license_type": "Retail Marijuana Store",
+    "status": "Active-Pending Inspection",
+    "location": {
+      "address": "10011 Glacier Highway, Juneau, AK 99801, UNITED STATES",
+      "coordinates": {
+        "latitude": null,
+        "longitude": null
+      }
+    },
+    "contact": {
+      "phone": null
+    },
+    "hours": {},
+    "deals": [],
+    "isPartner": false,
+    "rating": null,
+    "lastUpdated": "2025-03-06T18:50:34.962888",
+    "hasValidCoordinates": false
+  },
+  {
+    "id": 28899,
+    "business_license": "2125467",
+    "name": "worner brothers outpost",
+    "license_type": "Retail Marijuana Store",
+    "status": "Active-Operating",
+    "location": {
+      "address": "33590 Sterling Hwy, Sterling, AK 99672, UNITED STATES",
+      "coordinates": {
+        "latitude": null,
+        "longitude": null
+      }
+    },
+    "contact": {
+      "phone": null
+    },
+    "hours": {},
+    "deals": [],
+    "isPartner": false,
+    "rating": null,
+    "lastUpdated": "2025-03-06T18:50:34.962888",
+    "hasValidCoordinates": false
+  },
+  {
+    "id": 28917,
+    "business_license": "2125636",
+    "name": "Back Alley Vapes",
+    "license_type": "Retail Marijuana Store",
+    "status": "Active-Operating",
+    "location": {
+      "address": "51698 Kenai Spur Hwy, Suite D, kenai, AK 99611, UNITED STATES",
+      "coordinates": {
+        "latitude": null,
+        "longitude": null
+      }
+    },
+    "contact": {
+      "phone": null
+    },
+    "hours": {},
+    "deals": [],
+    "isPartner": false,
+    "rating": null,
+    "lastUpdated": "2025-03-06T18:50:34.962888",
+    "hasValidCoordinates": false
+  },
+  {
+    "id": 29087,
+    "business_license": "2126763",
+    "name": "Alice's",
+    "license_type": "Retail Marijuana Store",
+    "status": "Tabled",
+    "location": {
+      "address": "12111 Horseshoe Drive, Suite 1, Eagle River, AK 99577, UNITED STATES",
+      "coordinates": {
+        "latitude": null,
+        "longitude": null
+      }
+    },
+    "contact": {
+      "phone": null
+    },
+    "hours": {},
+    "deals": [],
+    "isPartner": false,
+    "rating": null,
+    "lastUpdated": "2025-03-06T18:50:34.962888",
+    "hasValidCoordinates": false
+  },
+  {
+    "id": 29266,
+    "business_license": "2180099",
+    "name": "Dandelion Dispensary",
+    "license_type": "Retail Marijuana Store",
+    "status": "Active-Operating",
+    "location": {
+      "address": "1053 Haines Hwy, Haines, AK 99827, UNITED STATES",
+      "coordinates": {
+        "latitude": null,
+        "longitude": null
+      }
+    },
+    "contact": {
+      "phone": null
+    },
+    "hours": {},
+    "deals": [],
+    "isPartner": false,
+    "rating": null,
+    "lastUpdated": "2025-03-06T18:50:34.962888",
+    "hasValidCoordinates": false
+  },
+  {
+    "id": 29341,
+    "business_license": "2128444",
+    "name": "Cannabis Cove",
+    "license_type": "Retail Marijuana Store",
+    "status": "Active-Operating",
+    "location": {
+      "address": "7198 N Tongass Highway, Ketchikan, AK 99901, UNITED STATES",
+      "coordinates": {
+        "latitude": null,
+        "longitude": null
+      }
+    },
+    "contact": {
+      "phone": null
+    },
+    "hours": {},
+    "deals": [],
+    "isPartner": false,
+    "rating": null,
+    "lastUpdated": "2025-03-06T18:50:34.962888",
+    "hasValidCoordinates": false
+  },
+  {
+    "id": 29768,
+    "business_license": "2121975",
+    "name": "Higher Dimensions",
+    "license_type": "Retail Marijuana Store",
+    "status": "Active-Operating",
+    "location": {
+      "address": "9737 Mud Bay Rd Unit 101, Ketchikan, AK 99901, UNITED STATES",
+      "coordinates": {
+        "latitude": null,
+        "longitude": null
+      }
+    },
+    "contact": {
+      "phone": null
+    },
+    "hours": {},
+    "deals": [],
+    "isPartner": false,
+    "rating": null,
+    "lastUpdated": "2025-03-06T18:50:34.962888",
+    "hasValidCoordinates": false
+  },
+  {
+    "id": 29874,
+    "business_license": "2131856",
+    "name": "Smoke Out Point",
+    "license_type": "Retail Marijuana Store",
+    "status": "Delegated",
+    "location": {
+      "address": "10600 E. Max Drive, Palmer, AK 99645, UNITED STATES",
+      "coordinates": {
+        "latitude": null,
+        "longitude": null
+      }
+    },
+    "contact": {
+      "phone": null
+    },
+    "hours": {},
+    "deals": [],
+    "isPartner": false,
+    "rating": null,
+    "lastUpdated": "2025-03-06T18:50:34.962888",
+    "hasValidCoordinates": false
+  },
+  {
+    "id": 30156,
+    "business_license": "1038791",
+    "name": "UNCLE HERB'S",
+    "license_type": "Retail Marijuana Store",
+    "status": "Delegated",
+    "location": {
+      "address": "44728 Sterling Highway, Soldotna, AK 99669, UNITED STATES",
+      "coordinates": {
+        "latitude": null,
+        "longitude": null
+      }
+    },
+    "contact": {
+      "phone": null
+    },
+    "hours": {},
+    "deals": [],
+    "isPartner": false,
+    "rating": null,
+    "lastUpdated": "2025-03-06T18:50:34.962888",
+    "hasValidCoordinates": false
+  },
+  {
+    "id": 30563,
+    "business_license": "2136975",
+    "name": "Good Vibes Bethel",
+    "license_type": "Retail Marijuana Store",
+    "status": "Active-Operating",
+    "location": {
+      "address": "323 Chief Eddie Hoffman Hwy, Bethel, AK 99559, UNITED STATES",
+      "coordinates": {
+        "latitude": null,
+        "longitude": null
+      }
+    },
+    "contact": {
+      "phone": null
+    },
+    "hours": {},
+    "deals": [],
+    "isPartner": false,
+    "rating": null,
+    "lastUpdated": "2025-03-06T18:50:34.962888",
+    "hasValidCoordinates": false
+  },
+  {
+    "id": 30822,
+    "business_license": "2197210",
+    "name": "Good Cannabis",
+    "license_type": "Retail Marijuana Store",
+    "status": "Active-Operating",
+    "location": {
+      "address": "Lot 3 Block 1, Laurence Barrett, Addition to, Townsite of McCarthy, McCarthy, AK 99588, UNITED STATES",
+      "coordinates": {
+        "latitude": null,
+        "longitude": null
+      }
+    },
+    "contact": {
+      "phone": null
+    },
+    "hours": {},
+    "deals": [],
+    "isPartner": false,
+    "rating": null,
+    "lastUpdated": "2025-03-06T18:50:34.962888",
+    "hasValidCoordinates": false
+  },
+  {
+    "id": 30838,
+    "business_license": "2138318",
+    "name": "Stash Cannabis Company",
+    "license_type": "Retail Marijuana Store",
+    "status": "Active-Operating",
+    "location": {
+      "address": "12825 W. Big Lake Road, Building #2, Big Lake, AK 99654, UNITED STATES",
+      "coordinates": {
+        "latitude": null,
+        "longitude": null
+      }
+    },
+    "contact": {
+      "phone": null
+    },
+    "hours": {},
+    "deals": [],
+    "isPartner": false,
+    "rating": null,
+    "lastUpdated": "2025-03-06T18:50:34.962888",
+    "hasValidCoordinates": false
+  },
+  {
+    "id": 32241,
+    "business_license": "2175221",
+    "name": "Arctic Cannabis LLC",
+    "license_type": "Retail Marijuana Store",
+    "status": "Active-Operating",
+    "location": {
+      "address": "476 Egasak Street, Unit A, Barrow, AK 99723, UNITED STATES",
+      "coordinates": {
+        "latitude": null,
+        "longitude": null
+      }
+    },
+    "contact": {
+      "phone": null
+    },
+    "hours": {},
+    "deals": [],
+    "isPartner": false,
+    "rating": null,
+    "lastUpdated": "2025-03-06T18:50:34.962888",
+    "hasValidCoordinates": false
+  },
+  {
+    "id": 32773,
+    "business_license": "2151613",
+    "name": "Red's Outpost",
+    "license_type": "Retail Marijuana Store",
+    "status": "Active-Operating",
+    "location": {
+      "address": "41790 Sterling Highway, Soldotna, AK 99669, UNITED STATES",
+      "coordinates": {
+        "latitude": null,
+        "longitude": null
+      }
+    },
+    "contact": {
+      "phone": null
+    },
+    "hours": {},
+    "deals": [],
+    "isPartner": false,
+    "rating": null,
+    "lastUpdated": "2025-03-06T18:50:34.962888",
+    "hasValidCoordinates": false
+  },
+  {
+    "id": 33270,
+    "business_license": "2147610",
+    "name": "Treadwell Herb Company LLC",
+    "license_type": "Retail Marijuana Store",
+    "status": "Active-Operating",
+    "location": {
+      "address": "824 Front Street, Douglas, AK 99824, UNITED STATES",
+      "coordinates": {
+        "latitude": null,
+        "longitude": null
+      }
+    },
+    "contact": {
+      "phone": null
+    },
+    "hours": {},
+    "deals": [],
+    "isPartner": false,
+    "rating": null,
+    "lastUpdated": "2025-03-06T18:50:34.962888",
+    "hasValidCoordinates": false
+  },
+  {
+    "id": 34761,
+    "business_license": "2168530",
+    "name": "420 Green Street",
+    "license_type": "Retail Marijuana Store",
+    "status": "Active-Operating",
+    "location": {
+      "address": "505 Front Street, Craig, AK 99921, UNITED STATES",
+      "coordinates": {
+        "latitude": null,
+        "longitude": null
+      }
+    },
+    "contact": {
+      "phone": null
+    },
+    "hours": {},
+    "deals": [],
+    "isPartner": false,
+    "rating": null,
+    "lastUpdated": "2025-03-06T18:50:34.962888",
+    "hasValidCoordinates": false
+  },
+  {
+    "id": 34794,
+    "business_license": "1069832",
+    "name": "KENAI RIVER CANNABIS",
+    "license_type": "Retail Marijuana Store",
+    "status": "Active-Operating",
+    "location": {
+      "address": "Lot 1 Public Right of Way Road, Stebbins, AK 99671, UNITED STATES",
+      "coordinates": {
+        "latitude": null,
+        "longitude": null
+      }
+    },
+    "contact": {
+      "phone": null
+    },
+    "hours": {},
+    "deals": [],
+    "isPartner": false,
+    "rating": null,
+    "lastUpdated": "2025-03-06T18:50:34.962888",
+    "hasValidCoordinates": false
+  },
+  {
+    "id": 34856,
+    "business_license": "2170048",
+    "name": "The Tufted Puffin",
+    "license_type": "Retail Marijuana Store",
+    "status": "Active-Operating",
+    "location": {
+      "address": "48380 Sterling Highway, Soldotna, AK 99669, UNITED STATES",
+      "coordinates": {
+        "latitude": null,
+        "longitude": null
+      }
+    },
+    "contact": {
+      "phone": null
+    },
+    "hours": {},
+    "deals": [],
+    "isPartner": false,
+    "rating": null,
+    "lastUpdated": "2025-03-06T18:50:34.962888",
+    "hasValidCoordinates": false
+  },
+  {
+    "id": 35466,
+    "business_license": "2187995",
+    "name": "The Green Anchor",
+    "license_type": "Retail Marijuana Store",
+    "status": "Delegated",
+    "location": {
+      "address": "34145 Chapman St, Anchor Point, AK 99556, UNITED STATES",
+      "coordinates": {
+        "latitude": null,
+        "longitude": null
+      }
+    },
+    "contact": {
+      "phone": null
+    },
+    "hours": {},
+    "deals": [],
+    "isPartner": false,
+    "rating": null,
+    "lastUpdated": "2025-03-06T18:50:34.962888",
+    "hasValidCoordinates": false
+  },
+  {
+    "id": 35626,
+    "business_license": "2200120",
+    "name": "Bering Sea Buds",
+    "license_type": "Retail Marijuana Store",
+    "status": "Active-Operating",
+    "location": {
+      "address": "749 E Broadway Avenue, Unalaska, AK 99685, UNITED STATES",
+      "coordinates": {
+        "latitude": null,
+        "longitude": null
+      }
+    },
+    "contact": {
+      "phone": null
+    },
+    "hours": {},
+    "deals": [],
+    "isPartner": false,
+    "rating": null,
+    "lastUpdated": "2025-03-06T18:50:34.962888",
+    "hasValidCoordinates": false
+  },
+  {
+    "id": 35633,
+    "business_license": "2176609",
+    "name": "Coastal Cannabis Company",
+    "license_type": "Retail Marijuana Store",
+    "status": "Active-Operating",
+    "location": {
+      "address": "1900 Mineral Creek Loop Rd, Valdez, AK 99686, UNITED STATES",
+      "coordinates": {
+        "latitude": null,
+        "longitude": null
+      }
+    },
+    "contact": {
+      "phone": null
+    },
+    "hours": {},
+    "deals": [],
+    "isPartner": false,
+    "rating": null,
+    "lastUpdated": "2025-03-06T18:50:34.962888",
+    "hasValidCoordinates": false
+  },
+  {
+    "id": 36739,
+    "business_license": "1042820",
+    "name": "FAT TOPS, LLC.",
+    "license_type": "Retail Marijuana Store",
+    "status": "Active-Operating",
+    "location": {
+      "address": "33200 Sterling Hwy., Anchor Point, AK 99556, UNITED STATES",
+      "coordinates": {
+        "latitude": null,
+        "longitude": null
+      }
+    },
+    "contact": {
+      "phone": null
+    },
+    "hours": {},
+    "deals": [],
+    "isPartner": false,
+    "rating": null,
+    "lastUpdated": "2025-03-06T18:50:34.962888",
+    "hasValidCoordinates": false
+  },
+  {
+    "id": 36831,
+    "business_license": "2185730",
+    "name": "BoomTown Buds",
+    "license_type": "Retail Marijuana Store",
+    "status": "Active-Operating",
+    "location": {
+      "address": "200 4th Ave, Skagway, AK 99840, UNITED STATES",
+      "coordinates": {
+        "latitude": null,
+        "longitude": null
+      }
+    },
+    "contact": {
+      "phone": null
+    },
+    "hours": {},
+    "deals": [],
+    "isPartner": false,
+    "rating": null,
+    "lastUpdated": "2025-03-06T18:50:34.962888",
+    "hasValidCoordinates": false
+  },
+  {
+    "id": 36998,
+    "business_license": "2115560",
+    "name": "GOOD Cannabis",
+    "license_type": "Retail Marijuana Store",
+    "status": "Delegated",
+    "location": {
+      "address": "Area B, Lot 7 of Harbor View Subdivision, Whittier, AK 99693, UNITED STATES",
+      "coordinates": {
+        "latitude": null,
+        "longitude": null
+      }
+    },
+    "contact": {
+      "phone": null
+    },
+    "hours": {},
+    "deals": [],
+    "isPartner": false,
+    "rating": null,
+    "lastUpdated": "2025-03-06T18:50:34.962888",
+    "hasValidCoordinates": false
+  },
+  {
+    "id": 37259,
+    "business_license": "2188641",
+    "name": "Flower Mountain",
+    "license_type": "Retail Marijuana Store",
+    "status": "Delegated",
+    "location": {
+      "address": "842 Main St., Haines, AK 99827, UNITED STATES",
+      "coordinates": {
+        "latitude": null,
+        "longitude": null
+      }
+    },
+    "contact": {
+      "phone": null
+    },
+    "hours": {},
+    "deals": [],
+    "isPartner": false,
+    "rating": null,
+    "lastUpdated": "2025-03-06T18:50:34.962888",
+    "hasValidCoordinates": false
+  },
+  {
+    "id": 37844,
+    "business_license": "2090055",
+    "name": "canna get happy llc",
+    "license_type": "Retail Marijuana Store",
+    "status": "Delegated",
+    "location": {
+      "address": "11888 Kenai Spur Hwy #3, Kenai, AK 99611, UNITED STATES",
+      "coordinates": {
+        "latitude": null,
+        "longitude": null
+      }
+    },
+    "contact": {
+      "phone": null
+    },
+    "hours": {},
+    "deals": [],
+    "isPartner": false,
+    "rating": null,
+    "lastUpdated": "2025-03-06T18:50:34.962888",
+    "hasValidCoordinates": false
+  },
+  {
+    "id": 37930,
+    "business_license": "2140524",
+    "name": "Island Girl Cannabis, LLC",
+    "license_type": "Retail Marijuana Store",
+    "status": "Active-Operating",
+    "location": {
+      "address": "224 Smith Street, Suite A, Sitka, AK 99835, UNITED STATES",
+      "coordinates": {
+        "latitude": null,
+        "longitude": null
+      }
+    },
+    "contact": {
+      "phone": null
+    },
+    "hours": {},
+    "deals": [],
+    "isPartner": false,
+    "rating": null,
+    "lastUpdated": "2025-03-06T18:50:34.962888",
+    "hasValidCoordinates": false
+  }
+]
