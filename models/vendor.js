@@ -9,8 +9,10 @@ const vendorSchema = Joi.object({
   status: Joi.string().allow(null, ''),
   location: Joi.object({
     address: Joi.string().required(),
-    latitude: Joi.number().allow(null),
-    longitude: Joi.number().allow(null)
+    coordinates: Joi.object({
+      latitude: Joi.number().allow(null),
+      longitude: Joi.number().allow(null)
+    }).required()
   }).required(),
   contact: Joi.object({
     phone: Joi.string().allow(null, ''),
@@ -26,8 +28,8 @@ const vendorSchema = Joi.object({
       open: Joi.string().allow(null, ''),
       close: Joi.string().allow(null, '')
     })
-  ).allow({}),
-  deals: Joi.array().items(Joi.object()),
+  ).optional(),
+  deals: Joi.array().items(Joi.object()).optional(),
   isPartner: Joi.boolean().default(false),
   rating: Joi.number().allow(null),
   lastUpdated: Joi.string().allow(null)
@@ -52,7 +54,30 @@ function normalizeVendor(rawVendor) {
   const vendor = { ...rawVendor };
   
   // Ensure proper structure
-  vendor.location = vendor.location || { address: '', latitude: null, longitude: null };
+  vendor.location = vendor.location || { 
+    address: '', 
+    coordinates: { latitude: null, longitude: null } 
+  };
+  
+  // Handle case where old format might be used (flat latitude/longitude)
+  if (vendor.location.latitude !== undefined || vendor.location.longitude !== undefined) {
+    vendor.location = {
+      address: vendor.location.address || '',
+      coordinates: {
+        latitude: vendor.location.latitude || null,
+        longitude: vendor.location.longitude || null
+      }
+    };
+    // Remove the old properties to avoid duplication
+    delete vendor.location.latitude;
+    delete vendor.location.longitude;
+  }
+  
+  // Ensure coordinates object exists
+  if (!vendor.location.coordinates) {
+    vendor.location.coordinates = { latitude: null, longitude: null };
+  }
+  
   vendor.contact = vendor.contact || { phone: null };
   vendor.hours = vendor.hours || {};
   vendor.deals = vendor.deals || [];
@@ -70,4 +95,4 @@ module.exports = {
   validateVendor,
   normalizeVendor,
   vendorSchema
-}; 
+};

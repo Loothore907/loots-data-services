@@ -24,7 +24,9 @@ async function processVendors(options) {
     collection = 'vendors',             // Firestore collection
     geocodingConcurrency = 2,           // Concurrent geocoding requests
     geocodingDelay = 200,               // Delay between geocoding batches
-    skipExistingCoordinates = true      // Skip vendors that already have coordinates
+    skipExistingCoordinates = true,     // Skip vendors that already have coordinates
+    skipSync = false,                   // Skip Firebase sync step
+    geocodingProvider = ''              // Geocoding provider to use
   } = options;
   
   try {
@@ -61,7 +63,8 @@ async function processVendors(options) {
     
     const geocodeOptions = {
       concurrency: geocodingConcurrency,
-      delayMs: geocodingDelay
+      delayMs: geocodingDelay,
+      provider: geocodingProvider
     };
     
     const geocodeResult = await batchGeocodeVendors(vendorsToGeocode, geocodeOptions);
@@ -118,6 +121,22 @@ async function processVendors(options) {
     logger.info(`Schema validation: ${validVendors.length} valid, ${schemaErrors.length} invalid`);
     
     // STEP 4: Sync to Firebase
+    if (skipSync) {
+      logger.info('Skipping Firebase sync as requested');
+      return {
+        success: true,
+        stats: {
+          total: vendors.length,
+          normalized: normalizedVendors.length,
+          geocoded: successful.length,
+          failed: failed.length,
+          schemaValid: validVendors.length,
+          schemaInvalid: schemaErrors.length,
+          synced: 0
+        }
+      };
+    }
+
     if (validVendors.length === 0) {
       logger.warn('No valid vendors to sync to Firebase');
       return {

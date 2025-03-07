@@ -8,12 +8,15 @@
     "import": "node scripts/import-vendors.js",
     "sync": "node scripts/sync-firebase.js",
     "process": "node scripts/process-all.js",
-    "ui": "node server.js",
+    "retry-failed": "node scripts/process-all.js --input=./data/output/failed-vendors.json --output=./data/output/retry-failed-geocoding.json --mode=append",
+    "retry-rapidapi": "node scripts/process-all.js --input=./data/output/failed-vendors.json --output=./data/output/rapidapi-retry.json --provider=rapidapi --delay=1000 --mode=append",
+    "start": "node server.js",
     "test": "jest"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "axios": "^1.8.1",
     "chalk": "^4.1.2",
     "commander": "^9.4.1",
     "dotenv": "^16.0.3",
