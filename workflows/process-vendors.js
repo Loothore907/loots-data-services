@@ -79,10 +79,18 @@ async function processVendors(options) {
     
     // Split into successful and failed geocoding
     const successful = allVendors.filter(v => 
-      v.location && v.location.latitude && v.location.longitude);
+      (v.location && v.location.latitude && v.location.longitude) || 
+      (v.location && v.location.coordinates && 
+       v.location.coordinates.latitude && v.location.coordinates.longitude) ||
+      v.hasValidCoordinates === true);
     
     const failed = allVendors.filter(v => 
-      !v.location || !v.location.latitude || !v.location.longitude);
+      (!v.location || 
+       ((!v.location.latitude || !v.location.longitude) && 
+        (!v.location.coordinates || 
+         !v.location.coordinates.latitude || 
+         !v.location.coordinates.longitude))) &&
+      v.hasValidCoordinates !== true);
     
     logger.info(`Geocoding results: ${successful.length} successful, ${failed.length} failed`);
     

@@ -2,8 +2,8 @@
 const axios = require('axios');
 require('dotenv').config();
 
-// Test address
-const testAddress = "607 Old Steese Hwy, Fairbanks, AK 99701";
+// Test address - use one from your failed addresses
+const testAddress = "4901 E Blue Lupine dr, Wasilla, AK 99654";
 
 async function testRapidAPI() {
   try {
@@ -18,13 +18,17 @@ async function testRapidAPI() {
     console.log(`Testing RapidAPI geocoding for: ${testAddress}`);
     console.log(`Using host: ${apiHost}`);
     
-    const options = {
+    // Test the search endpoint (for free-form search)
+    console.log("\n--- Testing /v1/search endpoint (free-form search) ---");
+    
+    const searchOptions = {
       method: 'GET',
-      url: `https://${apiHost}/v1/forward`,
+      url: `https://${apiHost}/v1/search`,
       params: {
-        address: testAddress,
-        accept_language: 'en',
-        polygon_threshold: '0.0'
+        q: testAddress,
+        format: 'json',
+        addressdetails: '1',
+        limit: '1'
       },
       headers: {
         'X-RapidAPI-Key': apiKey,
@@ -32,41 +36,102 @@ async function testRapidAPI() {
       }
     };
     
-    console.log('Sending request with options:', {
-      url: options.url,
-      params: options.params,
-      headers: {
-        'X-RapidAPI-Host': options.headers['X-RapidAPI-Host'],
-        'X-RapidAPI-Key': '***API-KEY-HIDDEN***'
+    console.log('Request URL:', searchOptions.url);
+    console.log('Request params:', searchOptions.params);
+    
+    try {
+      const searchResponse = await axios.request(searchOptions);
+      
+      console.log('Response status:', searchResponse.status);
+      console.log('Response data type:', typeof searchResponse.data);
+      console.log('Response data:', JSON.stringify(searchResponse.data, null, 2));
+      
+      if (searchResponse.data && Array.isArray(searchResponse.data) && searchResponse.data.length > 0) {
+        const result = searchResponse.data[0];
+        console.log('✅ Search endpoint successful!');
+        console.log('Found coordinates:', {
+          lat: result.lat,
+          lon: result.lon
+        });
+      } else {
+        console.log('❌ Search endpoint returned no results');
       }
-    });
+    } catch (searchError) {
+      console.error('❌ Error with search endpoint:', searchError.message);
+      if (searchError.response) {
+        console.error('Response status:', searchError.response.status);
+        console.error('Response data:', searchError.response.data);
+      }
+    }
     
-    const response = await axios.request(options);
+    // Test the forward endpoint (for structured search)
+    console.log("\n--- Testing /v1/forward endpoint (structured search) ---");
     
-    console.log('Response status:', response.status);
-    console.log('Response data:', JSON.stringify(response.data, null, 2));
+    // Parse the address into components
+    const addressParts = testAddress.split(',').map(part => part.trim());
+    const street = addressParts[0];
+    const city = addressParts[1] || '';
+    let state = '';
+    let postalcode = '';
     
-    if (Array.isArray(response.data) && response.data.length > 0) {
-      const firstResult = response.data[0];
-      console.log('\nFirst result:');
-      console.log('Latitude:', firstResult.lat);
-      console.log('Longitude:', firstResult.lon);
-      console.log('Display name:', firstResult.display_name);
-    } else {
-      console.log('No results found or unexpected response format');
+    // Try to extract state and postal code
+    if (addressParts[2]) {
+      const stateParts = addressParts[2].trim().split(' ');
+      if (stateParts.length >= 2) {
+        state = stateParts[0];
+        postalcode = stateParts[1];
+      }
+    }
+    
+    const forwardOptions = {
+      method: 'GET',
+      url: `https://${apiHost}/v1/forward`,
+      params: {
+        street: street,
+        city: city,
+        state: state,
+        postalcode: postalcode,
+        country: 'USA',
+        format: 'json',
+        addressdetails: '1',
+        limit: '1'
+      },
+      headers: {
+        'X-RapidAPI-Key': apiKey,
+        'X-RapidAPI-Host': apiHost
+      }
+    };
+    
+    console.log('Request URL:', forwardOptions.url);
+    console.log('Request params:', forwardOptions.params);
+    
+    try {
+      const forwardResponse = await axios.request(forwardOptions);
+      
+      console.log('Response status:', forwardResponse.status);
+      console.log('Response data type:', typeof forwardResponse.data);
+      console.log('Response data:', JSON.stringify(forwardResponse.data, null, 2));
+      
+      if (forwardResponse.data && Array.isArray(forwardResponse.data) && forwardResponse.data.length > 0) {
+        const result = forwardResponse.data[0];
+        console.log('✅ Forward endpoint successful!');
+        console.log('Found coordinates:', {
+          lat: result.lat,
+          lon: result.lon
+        });
+      } else {
+        console.log('❌ Forward endpoint returned no results');
+      }
+    } catch (forwardError) {
+      console.error('❌ Error with forward endpoint:', forwardError.message);
+      if (forwardError.response) {
+        console.error('Response status:', forwardError.response.status);
+        console.error('Response data:', forwardError.response.data);
+      }
     }
     
   } catch (error) {
-    console.error('Error during RapidAPI test:');
-    if (error.response) {
-      console.error('Status:', error.response.status);
-      console.error('Data:', error.response.data);
-      console.error('Headers:', error.response.headers);
-    } else if (error.request) {
-      console.error('No response received. Request:', error.request);
-    } else {
-      console.error('Error message:', error.message);
-    }
+    console.error('Error during RapidAPI test:', error);
   }
 }
 

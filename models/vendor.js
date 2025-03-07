@@ -32,7 +32,8 @@ const vendorSchema = Joi.object({
   deals: Joi.array().items(Joi.object()).optional(),
   isPartner: Joi.boolean().default(false),
   rating: Joi.number().allow(null),
-  lastUpdated: Joi.string().allow(null)
+  lastUpdated: Joi.string().allow(null),
+  hasValidCoordinates: Joi.boolean().default(false)
 });
 
 /**
@@ -59,23 +60,33 @@ function normalizeVendor(rawVendor) {
     coordinates: { latitude: null, longitude: null } 
   };
   
-  // Handle case where old format might be used (flat latitude/longitude)
-  if (vendor.location.latitude !== undefined || vendor.location.longitude !== undefined) {
-    vendor.location = {
-      address: vendor.location.address || '',
-      coordinates: {
-        latitude: vendor.location.latitude || null,
-        longitude: vendor.location.longitude || null
-      }
+  // Handle case where coordinates are at the location level
+  if (vendor.location.latitude !== undefined && vendor.location.longitude !== undefined) {
+    // Move coordinates to the coordinates object
+    vendor.location.coordinates = {
+      latitude: vendor.location.latitude,
+      longitude: vendor.location.longitude
     };
+    
     // Remove the old properties to avoid duplication
     delete vendor.location.latitude;
     delete vendor.location.longitude;
   }
   
-  // Ensure coordinates object exists
-  if (!vendor.location.coordinates) {
-    vendor.location.coordinates = { latitude: null, longitude: null };
+  // Handle case where coordinates are nested but we need them at the top level for validation
+  if (vendor.location.coordinates && 
+      vendor.location.coordinates.latitude && 
+      vendor.location.coordinates.longitude) {
+    // Ensure the coordinates are numbers
+    vendor.location.coordinates.latitude = parseFloat(vendor.location.coordinates.latitude);
+    vendor.location.coordinates.longitude = parseFloat(vendor.location.coordinates.longitude);
+    
+    // Add a flag to indicate valid coordinates
+    vendor.hasValidCoordinates = true;
+  } else {
+    // Ensure coordinates object exists
+    vendor.location.coordinates = vendor.location.coordinates || { latitude: null, longitude: null };
+    vendor.hasValidCoordinates = false;
   }
   
   vendor.contact = vendor.contact || { phone: null };

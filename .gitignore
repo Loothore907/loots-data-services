@@ -40,5 +40,15 @@ coverage
 # Ignore all files in the config/service-accounts directory
 config/service-accounts/*
 
-# Ignore all files in the data/input directory
-data/input/*
+# Inside .gitignore
+# Exclude data files but keep directory structure
+/data/input/*
+!/data/input/.gitkeep
+/data/processed/*
+!/data/processed/.gitkeep
+/data/output/*
+!/data/output/.gitkeep
+/data/failures/*
+!/data/failures/.gitkeep
+/data/*/archive/*
+!/data/*/archive/.gitkeep

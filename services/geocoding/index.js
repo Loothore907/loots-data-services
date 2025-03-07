@@ -46,13 +46,20 @@ async function geocodeWithRapidAPI(address) {
       throw new Error('RapidAPI key or host not configured');
     }
     
+    // Clean up the address - remove ", UNITED STATES" suffix if present
+    const cleanAddress = address.replace(/, UNITED STATES$/i, '');
+    
+    console.log(`Geocoding address: ${cleanAddress}`);
+    
+    // Use the /v1/search endpoint for free-form search with correct parameters
     const options = {
       method: 'GET',
-      url: `https://${apiHost}/v1/forward`,
+      url: `https://${apiHost}/v1/search`,
       params: {
-        address: address,
-        accept_language: 'en',
-        polygon_threshold: '0.0'
+        q: cleanAddress,             // This is the correct parameter name for the search endpoint
+        format: 'json',
+        addressdetails: '1',
+        limit: '1'
       },
       headers: {
         'X-RapidAPI-Key': apiKey,
@@ -60,14 +67,13 @@ async function geocodeWithRapidAPI(address) {
       }
     };
 
-    console.log(`Geocoding address: ${address}`);
     const response = await axios.request(options);
     
-    // Log the response structure for debugging
+    // Log the complete response structure for debugging
     console.log('RapidAPI response structure:', JSON.stringify(response.data).substring(0, 300) + '...');
     
     if (!response.data || !Array.isArray(response.data) || response.data.length === 0) {
-      console.log('No results found for address:', address);
+      console.log('No results found for address:', cleanAddress);
       return { 
         success: false, 
         error: 'No results found' 
@@ -76,7 +82,7 @@ async function geocodeWithRapidAPI(address) {
     
     const result = response.data[0];
     
-    // Check if the result has the expected properties
+    // Check if the result has the lat/lon properties (per documentation)
     if (!result || typeof result.lat === 'undefined' || typeof result.lon === 'undefined') {
       console.log('Invalid result structure:', result);
       return {
@@ -92,15 +98,19 @@ async function geocodeWithRapidAPI(address) {
           latitude: parseFloat(result.lat),
           longitude: parseFloat(result.lon)
         },
-        formattedAddress: result.display_name || address
+        formattedAddress: result.display_name || cleanAddress
       }
     };
   } catch (error) {
     console.error('RapidAPI geocoding error:', error.message);
+    
     // Log more details about the error for debugging
     if (error.response) {
       console.error('Error response:', error.response.status, error.response.data);
+    } else if (error.request) {
+      console.error('No response received');
     }
+    
     return {
       success: false,
       error: error.message || 'RapidAPI geocoding failed'
@@ -208,7 +218,8 @@ async function batchGeocodeVendors(vendors, options = {}) {
             ...vendor.location,
             address: geocodeResult.data.formattedAddress || vendor.location.address,
             coordinates: geocodeResult.data.coordinates
-          }
+          },
+          hasValidCoordinates: true
         };
       } catch (error) {
         errors.push({
