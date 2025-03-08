@@ -114,6 +114,59 @@
           </dl>
         </div>
       </div>
+      
+      <!-- Add this card to views/vendors/show.ejs to display status change history -->
+      <div class="card mb-4">
+        <div class="card-header">
+          <h5 class="card-title">Status Change History</h5>
+        </div>
+        <div class="card-body">
+          <% if (vendor.statusChanges && vendor.statusChanges.length > 0) { %>
+            <div class="table-responsive">
+              <table class="table table-sm">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>From</th>
+                    <th>To</th>
+                    <th>Source</th>
+                    <th>Notes</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% vendor.statusChanges.sort((a, b) => new Date(b.date) - new Date(a.date)).forEach(change => { %>
+                    <tr>
+                      <td><%= new Date(change.date).toLocaleString() %></td>
+                      <td>
+                        <% if (change.from) { %>
+                          <span class="badge <%= getStatusBadgeClass({status: change.from}) %>"><%= change.from %></span>
+                        <% } else { %>
+                          <span class="text-muted">Initial</span>
+                        <% } %>
+                      </td>
+                      <td>
+                        <span class="badge <%= getStatusBadgeClass({status: change.to}) %>"><%= change.to %></span>
+                      </td>
+                      <td>
+                        <% if (change.source === 'manual') { %>
+                          <span class="badge bg-info">Manual Update</span>
+                        <% } else if (change.source === 'import') { %>
+                          <span class="badge bg-secondary">Data Import</span>
+                        <% } else { %>
+                          <span class="badge bg-light text-dark"><%= change.source %></span>
+                        <% } %>
+                      </td>
+                      <td><%= change.notes || '' %></td>
+                    </tr>
+                  <% }) %>
+                </tbody>
+              </table>
+            </div>
+          <% } else { %>
+            <p class="text-muted mb-0">No status changes have been recorded for this vendor.</p>
+          <% } %>
+        </div>
+      </div>
     </div>
     
     <!-- Location Info -->
@@ -195,37 +248,87 @@
         <!-- Deals -->
         <div class="col-md-6">
           <div class="card mb-4">
-            <div class="card-header">
-              <h5 class="card-title">Deals & Specials</h5>
+            <div class="card-header d-flex justify-content-between align-items-center">
+              <h5 class="card-title mb-0">Deals & Promotions</h5>
+              <a href="/deals/new?vendorId=<%= vendor.id %>" class="btn btn-sm btn-primary">
+                <i class="bi bi-plus-lg"></i> Add Deal
+              </a>
             </div>
             <div class="card-body">
-              <% if (vendor.deals && vendor.deals.length > 0) { %>
-                <div class="accordion" id="dealsAccordion">
-                  <% vendor.deals.forEach((deal, index) => { %>
-                    <div class="accordion-item">
-                      <h2 class="accordion-header">
-                        <button class="accordion-button collapsed" type="button" 
-                                data-bs-toggle="collapse" 
-                                data-bs-target="#deal<%= index %>">
-                          <%= deal.title || 'Untitled Deal' %>
-                          <% if (deal.day) { %>
-                            <span class="badge bg-info ms-2">
-                              <%= deal.day.charAt(0).toUpperCase() + deal.day.slice(1) %>
-                            </span>
+              <% if (deals && deals.length > 0) { %>
+                <ul class="list-group list-group-flush">
+                  <% deals.forEach(deal => { %>
+                    <li class="list-group-item px-0 py-3">
+                      <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                          <h6 class="mb-1"><%= deal.title %></h6>
+                          <p class="mb-1 text-muted"><%= deal.description %></p>
+                          <div class="d-flex align-items-center mt-2">
+                            <span class="badge bg-success me-2"><%= deal.discount %></span>
+                            
+                            <% if (deal.dealType === 'birthday') { %>
+                              <span class="badge bg-info me-2">Birthday</span>
+                            <% } else if (deal.dealType === 'daily') { %>
+                              <span class="badge bg-primary me-2">
+                                <%= deal.day.charAt(0).toUpperCase() + deal.day.slice(1) %>
+                              </span>
+                            <% } else if (deal.dealType === 'special') { %>
+                              <span class="badge bg-warning text-dark me-2">
+                                <%= new Date(deal.startDate).toLocaleDateString() %> - 
+                                <%= new Date(deal.endDate).toLocaleDateString() %>
+                              </span>
+                            <% } else if (deal.dealType === 'everyday') { %>
+                              <span class="badge bg-secondary me-2">Everyday</span>
+                            <% } %>
+                            
+                            <% if (!deal.isActive) { %>
+                              <span class="badge bg-danger me-2">Inactive</span>
+                            <% } %>
+                          </div>
+                          
+                          <% if (deal.restrictions && deal.restrictions.length > 0) { %>
+                            <div class="mt-2">
+                              <small class="d-block text-muted">Restrictions:</small>
+                              <ul class="small mb-0">
+                                <% deal.restrictions.forEach(restriction => { %>
+                                  <li><%= restriction %></li>
+                                <% }) %>
+                              </ul>
+                            </div>
                           <% } %>
-                        </button>
-                      </h2>
-                      <div id="deal<%= index %>" class="accordion-collapse collapse" 
-                           data-bs-parent="#dealsAccordion">
-                        <div class="accordion-body">
-                          <%= deal.description || 'No description provided.' %>
+                        </div>
+                        <div class="ms-2">
+                          <div class="btn-group" role="group">
+                            <a href="/deals/<%= deal.id %>/edit" class="btn btn-sm btn-outline-primary">
+                              <i class="bi bi-pencil"></i>
+                            </a>
+                            <form action="/deals/<%= deal.id %>/toggle-status" method="POST" class="d-inline">
+                              <input type="hidden" name="isActive" value="<%= !deal.isActive %>">
+                              <input type="hidden" name="returnUrl" value="/vendors/<%= vendor.id %>">
+                              <button type="submit" class="btn btn-sm <%= deal.isActive ? 'btn-outline-success' : 'btn-outline-secondary' %>" 
+                                      title="<%= deal.isActive ? 'Deactivate deal' : 'Activate deal' %>">
+                                <i class="bi <%= deal.isActive ? 'bi-toggle-on' : 'bi-toggle-off' %>"></i>
+                              </button>
+                            </form>
+                          </div>
                         </div>
                       </div>
-                    </div>
+                    </li>
                   <% }) %>
-                </div>
+                </ul>
+                
+                <% if (deals.length > 3) { %>
+                  <div class="text-center mt-3">
+                    <a href="/deals?vendorId=<%= vendor.id %>" class="btn btn-sm btn-outline-primary">
+                      View All <%= deals.length %> Deals
+                    </a>
+                  </div>
+                <% } %>
               <% } else { %>
-                <p class="text-muted mb-0">No deals or specials specified.</p>
+                <div class="alert alert-info mb-0">
+                  No deals have been added for this vendor yet.
+                  <a href="/deals/new?vendorId=<%= vendor.id %>" class="alert-link">Add the first deal</a>
+                </div>
               <% } %>
             </div>
           </div>

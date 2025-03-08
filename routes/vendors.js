@@ -11,6 +11,7 @@ const {
   filterVendorsByStatus
 } = require('../utils/vendor-status');
 const logger = require('../utils/logger');
+const admin = require('firebase-admin');
 
 // List vendors with pagination, filtering, and region integration
 router.get('/', async (req, res) => {
@@ -215,7 +216,26 @@ router.get('/:id', async (req, res) => {
       }
     }
     
-    res.render('vendors/show', { vendor, regions });
+    // Get deals for this vendor
+    let vendorDeals = [];
+    try {
+      const dealsSnapshot = await db.collection('deals')
+        .where('vendorId', '==', req.params.id)
+        .orderBy('updatedAt', 'desc')
+        .get();
+      
+      dealsSnapshot.forEach(doc => {
+        vendorDeals.push({
+          id: doc.id,
+          ...doc.data()
+        });
+      });
+    } catch (dealError) {
+      logger.warn(`Error fetching deals for vendor ${req.params.id}:`, dealError);
+      // Continue rendering the page even if deals fetch fails
+    }
+    
+    res.render('vendors/show', { vendor, regions, deals: vendorDeals });
   } catch (error) {
     logger.error('Error fetching vendor:', error);
     res.status(500).render('error', { error: 'Failed to fetch vendor details' });
@@ -350,6 +370,52 @@ router.post('/:id/delete', async (req, res) => {
   } catch (error) {
     logger.error('Error deleting vendor:', error);
     res.status(500).render('error', { error: 'Failed to delete vendor' });
+  }
+});
+
+// Add this route to routes/vendors.js - Quick status update endpoint
+router.post('/:id/update-status', async (req, res) => {
+  try {
+    const { status, returnUrl } = req.body;
+    const vendorId = req.params.id;
+    
+    if (!status) {
+      return res.status(400).render('error', { error: 'No status provided' });
+    }
+    
+    // Get the current vendor to track the change
+    const db = getAdminDb();
+    const vendorDoc = await db.collection('vendors').doc(vendorId).get();
+    
+    if (!vendorDoc.exists) {
+      return res.status(404).render('error', { error: 'Vendor not found' });
+    }
+    
+    const vendor = vendorDoc.data();
+    const oldStatus = vendor.status;
+    
+    // Update vendor status with tracking info
+    await db.collection('vendors').doc(vendorId).update({
+      status: status,
+      lastUpdated: new Date().toISOString(),
+      statusLastChangedAt: new Date().toISOString(),
+      statusChanges: admin.firestore.FieldValue.arrayUnion({
+        from: oldStatus,
+        to: status,
+        date: new Date().toISOString(),
+        source: 'manual',
+        notes: req.body.notes || ''
+      })
+    });
+    
+    logger.info(`Updated vendor status: ${vendorId} (${vendor.name}) from ${oldStatus} to ${status}`);
+    
+    // Redirect back to the referring page or the vendor detail page
+    const redirectUrl = returnUrl || `/vendors/${vendorId}`;
+    return res.redirect(redirectUrl);
+  } catch (error) {
+    logger.error('Error updating vendor status:', error);
+    res.status(500).render('error', { error: 'Failed to update vendor status' });
   }
 });
 

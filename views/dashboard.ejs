@@ -82,6 +82,28 @@
       </div>
     </div>
     
+    <div class="col-md-6 col-lg-3">
+      <div class="card h-100 bg-danger text-white">
+        <div class="card-body">
+          <h5 class="card-title">Active Deals</h5>
+          <div class="d-flex align-items-center">
+            <div class="display-4 me-3">
+              <% if (typeof stats.dealsCount !== 'undefined') { %>
+                <%= stats.dealsCount %>
+              <% } else { %>
+                <span class="small">N/A</span>
+              <% } %>
+            </div>
+            <i class="bi bi-tags display-6"></i>
+          </div>
+          <p class="card-text mt-2 mb-0">Deals across all vendors</p>
+        </div>
+        <div class="card-footer bg-danger border-0">
+          <a href="/deals" class="text-white text-decoration-none">View Deals <i class="bi bi-arrow-right"></i></a>
+        </div>
+      </div>
+    </div>
+    
     <!-- Quick Actions -->
     <div class="col-lg-8">
       <div class="card h-100">
@@ -136,6 +158,19 @@
                 </div>
                 <div class="card-footer bg-light border-0 pt-0">
                   <a href="/workflows/sync" class="btn btn-sm btn-outline-primary">Sync to Firebase</a>
+                </div>
+              </div>
+            </div>
+            
+            <div class="col-md-6">
+              <div class="card h-100 border-0 bg-light">
+                <div class="card-body">
+                  <h6 class="card-title"><i class="bi bi-tags"></i> Deals Management</h6>
+                  <p class="card-text small">Add, edit, and manage vendor deals and promotions.</p>
+                </div>
+                <div class="card-footer bg-light border-0 pt-0">
+                  <a href="/deals" class="btn btn-sm btn-outline-primary">Manage Deals</a>
+                  <a href="/deals/new" class="btn btn-sm btn-outline-success">Add New</a>
                 </div>
               </div>
             </div>

@@ -6,10 +6,14 @@ const path = require('path');
 const fs = require('fs');
 const logger = require('./utils/logger');
 
+// const { DealType, DayOfWeek, DAYS_OF_WEEK } = require('./models/Schema');
+
 // Import routes
 const vendorRoutes = require('./routes/vendors');
 const workflowRoutes = require('./routes/workflows');
 const regionRoutes = require('./routes/region');
+// Import deals routes
+const dealsRoutes = require('./routes/deals');
 
 // Setup file upload storage for multipart forms
 const storage = multer.diskStorage({
@@ -54,6 +58,10 @@ app.get('/', async (req, res) => {
     const db = getAdminDb();
     const countSnapshot = await db.collection('vendors').count().get();
     const vendorCount = countSnapshot.data().count;
+    
+    // Get deals count
+    const dealsSnapshot = await db.collection('deals').where('isActive', '==', true).count().get();
+    const dealsCount = dealsSnapshot.data().count;
     
     // Get region information
     const regionSnapshot = await db.collection('regions').get();
@@ -126,6 +134,7 @@ app.get('/', async (req, res) => {
         activeCount: vendorsInActiveRegions.length,
         priorityCount: vendorsInPriorityRegions.length,
         partnerCount: partnerVendors.length,
+        dealsCount,
         recentWorkflows,
         
         // Add percentage stats
@@ -147,6 +156,7 @@ app.get('/', async (req, res) => {
         vendorCount: 'Error',
         regionCount: 'Error',
         activeRegionCount: 'Error',
+        dealsCount: 'Error',
         recentWorkflows: []
       } 
     });
@@ -157,6 +167,7 @@ app.get('/', async (req, res) => {
 app.use('/vendors', vendorRoutes);
 app.use('/workflows', workflowRoutes);
 app.use('/regions', regionRoutes);
+app.use('/deals', dealsRoutes);
 
 // Debug script to add to server.js for troubleshooting routes
 // Add this right after mounting routes but before error handlers

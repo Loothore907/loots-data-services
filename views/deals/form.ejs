@@ -1,0 +1,263 @@
+<!-- views/deals/form.ejs -->
+<%- include('../partials/header') %>
+
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><%= isNew ? 'Add New Deal' : 'Edit Deal' %></h1>
+    <div>
+      <a href="/deals" class="btn btn-outline-secondary me-2">Cancel</a>
+      <button form="dealForm" type="submit" class="btn btn-success">
+        <i class="bi bi-save"></i> Save Deal
+      </button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-body">
+      <form id="dealForm" method="POST" action="<%= isNew ? '/deals' : `/deals/${deal.id}` %>">
+        <div class="row g-3">
+          <!-- Vendor Selection -->
+          <div class="col-12">
+            <h5 class="border-bottom pb-2 mb-3">Vendor Information</h5>
+          </div>
+          
+          <div class="col-md-12">
+            <label for="vendorId" class="form-label">Vendor*</label>
+            <select class="form-select <%= errors.vendorId ? 'is-invalid' : '' %>" 
+                    id="vendorId" name="vendorId" required>
+              <option value="">Select Vendor</option>
+              <% vendors.forEach(vendor => { %>
+                <option value="<%= vendor.id %>" <%= deal.vendorId === vendor.id ? 'selected' : '' %>>
+                  <%= vendor.name %>
+                </option>
+              <% }) %>
+            </select>
+            <% if (errors.vendorId) { %>
+              <div class="invalid-feedback"><%= errors.vendorId %></div>
+            <% } %>
+            <div class="form-text">Select the vendor offering this deal</div>
+          </div>
+          
+          <!-- Deal Type Selection -->
+          <div class="col-12 mt-4">
+            <h5 class="border-bottom pb-2 mb-3">Deal Information</h5>
+          </div>
+          
+          <div class="col-md-6">
+            <label for="dealType" class="form-label">Deal Type*</label>
+            <select class="form-select <%= errors.dealType ? 'is-invalid' : '' %>" 
+                    id="dealType" name="dealType" required>
+              <option value="">Select Deal Type</option>
+              <option value="birthday" <%= deal.dealType === 'birthday' ? 'selected' : '' %>>Birthday</option>
+              <option value="daily" <%= deal.dealType === 'daily' ? 'selected' : '' %>>Daily</option>
+              <option value="special" <%= deal.dealType === 'special' ? 'selected' : '' %>>Special (Date Range)</option>
+              <option value="everyday" <%= deal.dealType === 'everyday' ? 'selected' : '' %>>Everyday</option>
+            </select>
+            <% if (errors.dealType) { %>
+              <div class="invalid-feedback"><%= errors.dealType %></div>
+            <% } %>
+          </div>
+          
+          <div class="col-md-6">
+            <label for="redemptionFrequency" class="form-label">Redemption Frequency*</label>
+            <select class="form-select <%= errors.redemptionFrequency ? 'is-invalid' : '' %>" 
+                    id="redemptionFrequency" name="redemptionFrequency" required>
+              <option value="once_per_day" <%= deal.redemptionFrequency === 'once_per_day' ? 'selected' : '' %>>Once Per Day</option>
+              <option value="once_per_visit" <%= deal.redemptionFrequency === 'once_per_visit' ? 'selected' : '' %>>Once Per Visit</option>
+              <option value="once" <%= deal.redemptionFrequency === 'once' ? 'selected' : '' %>>Once Only</option>
+              <option value="unlimited" <%= deal.redemptionFrequency === 'unlimited' ? 'selected' : '' %>>Unlimited</option>
+            </select>
+            <% if (errors.redemptionFrequency) { %>
+              <div class="invalid-feedback"><%= errors.redemptionFrequency %></div>
+            <% } %>
+            <div class="form-text">How often a customer can redeem this deal</div>
+          </div>
+          
+          <!-- Conditional fields based on deal type -->
+          <div class="col-md-12 deal-type-fields" id="dailyFields" style="display: <%= deal.dealType === 'daily' ? 'block' : 'none' %>;">
+            <label for="day" class="form-label">Day of Week*</label>
+            <select class="form-select <%= errors.day ? 'is-invalid' : '' %>" 
+                    id="day" name="day" <%= deal.dealType === 'daily' ? 'required' : '' %>>
+              <option value="">Select Day</option>
+              <% daysOfWeek.forEach(day => { %>
+                <option value="<%= day %>" <%= deal.day === day ? 'selected' : '' %>>
+                  <%= day.charAt(0).toUpperCase() + day.slice(1) %>
+                </option>
+              <% }) %>
+            </select>
+            <% if (errors.day) { %>
+              <div class="invalid-feedback"><%= errors.day %></div>
+            <% } %>
+          </div>
+          
+          <div class="col-md-12 deal-type-fields" id="specialFields" style="display: <%= deal.dealType === 'special' ? 'block' : 'none' %>;">
+            <div class="row">
+              <div class="col-md-6">
+                <label for="startDate" class="form-label">Start Date*</label>
+                <input type="date" class="form-control <%= errors.startDate ? 'is-invalid' : '' %>" 
+                       id="startDate" name="startDate" 
+                       value="<%= deal.startDate ? new Date(deal.startDate).toISOString().split('T')[0] : '' %>" 
+                       <%= deal.dealType === 'special' ? 'required' : '' %>>
+                <% if (errors.startDate) { %>
+                  <div class="invalid-feedback"><%= errors.startDate %></div>
+                <% } %>
+              </div>
+              <div class="col-md-6">
+                <label for="endDate" class="form-label">End Date*</label>
+                <input type="date" class="form-control <%= errors.endDate ? 'is-invalid' : '' %>" 
+                       id="endDate" name="endDate" 
+                       value="<%= deal.endDate ? new Date(deal.endDate).toISOString().split('T')[0] : '' %>" 
+                       <%= deal.dealType === 'special' ? 'required' : '' %>>
+                <% if (errors.endDate) { %>
+                  <div class="invalid-feedback"><%= errors.endDate %></div>
+                <% } %>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Deal Content -->
+          <div class="col-md-12">
+            <label for="title" class="form-label">Deal Title*</label>
+            <input type="text" class="form-control <%= errors.title ? 'is-invalid' : '' %>" 
+                  id="title" name="title" value="<%= deal.title || '' %>" required>
+            <% if (errors.title) { %>
+              <div class="invalid-feedback"><%= errors.title %></div>
+            <% } %>
+          </div>
+          
+          <div class="col-md-12">
+            <label for="description" class="form-label">Description*</label>
+            <textarea class="form-control <%= errors.description ? 'is-invalid' : '' %>" 
+                     id="description" name="description" rows="3" required><%= deal.description || '' %></textarea>
+            <% if (errors.description) { %>
+              <div class="invalid-feedback"><%= errors.description %></div>
+            <% } %>
+            <div class="form-text">Detailed description of what the deal offers</div>
+          </div>
+          
+          <div class="col-md-12">
+            <label for="discount" class="form-label">Discount/Offer*</label>
+            <input type="text" class="form-control <%= errors.discount ? 'is-invalid' : '' %>" 
+                  id="discount" name="discount" value="<%= deal.discount || '' %>" required>
+            <% if (errors.discount) { %>
+              <div class="invalid-feedback"><%= errors.discount %></div>
+            <% } %>
+            <div class="form-text">E.g., "20% OFF", "BOGO", "$10 OFF $50 Purchase"</div>
+          </div>
+          
+          <div class="col-md-12">
+            <label for="restrictions" class="form-label">Restrictions</label>
+            <textarea class="form-control <%= errors.restrictions ? 'is-invalid' : '' %>" 
+                     id="restrictions" name="restrictions" rows="3"><%= deal.restrictionsText || (deal.restrictions ? deal.restrictions.join('\n') : '') %></textarea>
+            <% if (errors.restrictions) { %>
+              <div class="invalid-feedback"><%= errors.restrictions %></div>
+            <% } %>
+            <div class="form-text">Enter each restriction on a new line</div>
+          </div>
+          
+          <div class="col-12">
+            <div class="form-check form-switch">
+              <input class="form-check-input" type="checkbox" id="isActive" name="isActive" 
+                    <%= (deal.isActive !== false) ? 'checked' : '' %>>
+              <label class="form-check-label" for="isActive">
+                Active Deal
+              </label>
+            </div>
+            <div class="form-text">Inactive deals won't appear in the app</div>
+          </div>
+          
+          <div class="col-12 mt-4">
+            <div class="d-flex justify-content-between">
+              <div>
+                <button type="submit" class="btn btn-primary">Save Deal</button>
+                <button type="submit" name="saveAndAddAnother" value="1" class="btn btn-outline-primary">Save & Add Another</button>
+                <a href="/deals" class="btn btn-outline-secondary">Cancel</a>
+              </div>
+              <% if (!isNew) { %>
+                <button type="button" class="btn btn-danger" 
+                        data-bs-toggle="modal" 
+                        data-bs-target="#deleteModal" 
+                        data-deal-id="<%= deal.id %>"
+                        data-deal-title="<%= deal.title %>">
+                  <i class="bi bi-trash"></i> Delete Deal
+                </button>
+              <% } %>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<% if (!isNew) { %>
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="deleteModalLabel">Confirm Delete</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        Are you sure you want to delete the deal "<strong id="dealTitle"></strong>"?
+        This action cannot be undone.
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <form id="deleteForm" method="POST" action="/deals/<%= deal.id %>/delete">
+          <button type="submit" class="btn btn-danger">Delete</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+<% } %>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Handle deal type change
+    const dealTypeSelect = document.getElementById('dealType');
+    const dailyFields = document.getElementById('dailyFields');
+    const specialFields = document.getElementById('specialFields');
+    const dayField = document.getElementById('day');
+    const startDateField = document.getElementById('startDate');
+    const endDateField = document.getElementById('endDate');
+    
+    dealTypeSelect.addEventListener('change', function() {
+      // Hide all conditional fields first
+      dailyFields.style.display = 'none';
+      specialFields.style.display = 'none';
+      
+      // Remove required attributes
+      dayField.removeAttribute('required');
+      startDateField.removeAttribute('required');
+      endDateField.removeAttribute('required');
+      
+      // Show fields based on selected deal type
+      switch(this.value) {
+        case 'daily':
+          dailyFields.style.display = 'block';
+          dayField.setAttribute('required', 'required');
+          break;
+        case 'special':
+          specialFields.style.display = 'block';
+          startDateField.setAttribute('required', 'required');
+          endDateField.setAttribute('required', 'required');
+          break;
+      }
+    });
+    
+    <% if (!isNew) { %>
+    // Setup delete modal
+    const deleteModal = document.getElementById('deleteModal');
+    deleteModal.addEventListener('show.bs.modal', event => {
+      const button = event.relatedTarget;
+      const dealTitle = button.getAttribute('data-deal-title');
+      document.getElementById('dealTitle').textContent = dealTitle;
+    });
+    <% } %>
+  });
+</script>
+
+<%- include('../partials/footer') %>

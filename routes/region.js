@@ -1,4 +1,4 @@
-// routes/regions.js
+// routes/region.js
 const express = require('express');
 const router = express.Router();
 const { 
@@ -8,6 +8,13 @@ const {
   fetchRegionsFromFirestore,
   extractZipCodeFromAddress
 } = require('../models/region');
+const { 
+  isVendorActive, 
+  isVendorRevoked,
+  getVendorStatusCategory, 
+  getStatusBadgeClass,
+  filterVendorsByStatus
+} = require('../utils/vendor-status');
 const { getAdminDb } = require('../config/firebase');
 const logger = require('../utils/logger');
 
@@ -110,11 +117,14 @@ router.post('/', async (req, res) => {
   }
 });
 
-// Show region details
+// Show region details with status filtering
 router.get('/:id', async (req, res) => {
   try {
     const db = getAdminDb();
     const regionDoc = await db.collection('regions').doc(req.params.id).get();
+    
+    // Get status filter from query params or default to 'active'
+    const statusFilter = req.query.statusFilter || 'active';
     
     if (!regionDoc.exists) {
       return res.status(404).render('error', { error: 'Region not found' });
@@ -127,7 +137,7 @@ router.get('/:id', async (req, res) => {
     
     // Get vendors in this region
     const vendorSnapshot = await db.collection('vendors').get();
-    const vendorsInRegion = [];
+    let vendorsInRegion = [];
     
     vendorSnapshot.forEach(doc => {
       const vendor = {
@@ -138,12 +148,38 @@ router.get('/:id', async (req, res) => {
       if (vendor.location && vendor.location.address) {
         const zipCode = extractZipCodeFromAddress(vendor.location.address);
         if (zipCode && region.zipCodes.includes(zipCode)) {
+          // Add status category and badge class
+          vendor.statusCategory = getVendorStatusCategory(vendor);
+          vendor.statusBadgeClass = getStatusBadgeClass(vendor);
+          vendor.isActiveVendor = isVendorActive(vendor);
+          
           vendorsInRegion.push(vendor);
         }
       }
     });
     
-    res.render('regions/show', { region, vendors: vendorsInRegion });
+    // First count total vendors by status for stats
+    const activeCount = vendorsInRegion.filter(v => getVendorStatusCategory(v) === 'active').length;
+    const inactiveCount = vendorsInRegion.filter(v => getVendorStatusCategory(v) === 'inactive').length;
+    const revokedCount = vendorsInRegion.filter(v => getVendorStatusCategory(v) === 'revoked').length;
+    const totalCount = vendorsInRegion.length;
+    
+    // Then apply status filtering if not set to 'all'
+    if (statusFilter !== 'all') {
+      vendorsInRegion = filterVendorsByStatus(vendorsInRegion, statusFilter);
+    }
+    
+    res.render('regions/show', { 
+      region, 
+      vendors: vendorsInRegion,
+      statusFilter,
+      stats: {
+        activeCount,
+        inactiveCount,
+        revokedCount,
+        totalCount
+      }
+    });
   } catch (error) {
     logger.error('Error fetching region details:', error);
     res.status(500).render('error', { error: 'Failed to fetch region details' });
@@ -219,6 +255,44 @@ router.post('/:id', async (req, res) => {
   } catch (error) {
     logger.error('Error updating region:', error);
     res.status(500).render('error', { error: 'Failed to update region' });
+  }
+});
+
+// Toggle region active status
+router.post('/:id/toggle-status', async (req, res) => {
+  try {
+    const isActive = req.body.isActive === 'true';
+    const db = getAdminDb();
+    
+    await db.collection('regions').doc(req.params.id).update({
+      isActive: isActive,
+      lastUpdated: new Date().toISOString()
+    });
+    
+    logger.info(`Toggled region ${req.params.id} active status to: ${isActive}`);
+    res.redirect(`/regions/${req.params.id}`);
+  } catch (error) {
+    logger.error('Error toggling region status:', error);
+    res.status(500).render('error', { error: 'Failed to toggle region status' });
+  }
+});
+
+// Toggle region priority status
+router.post('/:id/toggle-priority', async (req, res) => {
+  try {
+    const isPriority = req.body.isPriority === 'true';
+    const db = getAdminDb();
+    
+    await db.collection('regions').doc(req.params.id).update({
+      isPriority: isPriority,
+      lastUpdated: new Date().toISOString()
+    });
+    
+    logger.info(`Toggled region ${req.params.id} priority status to: ${isPriority}`);
+    res.redirect(`/regions/${req.params.id}`);
+  } catch (error) {
+    logger.error('Error toggling region priority:', error);
+    res.status(500).render('error', { error: 'Failed to toggle region priority' });
   }
 });
 

@@ -1,0 +1,346 @@
+<!-- views/deals/index.ejs -->
+<%- include('../partials/header') %>
+
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Deals</h1>
+    <a href="/deals/new" class="btn btn-primary">
+      <i class="bi bi-plus-lg"></i> Add New Deal
+    </a>
+  </div>
+
+  <!-- Dashboard Stats -->
+  <div class="row g-4 mb-4">
+    <!-- Total Deals -->
+    <div class="col-md-6 col-lg-3">
+      <div class="card h-100 bg-primary text-white">
+        <div class="card-body">
+          <h5 class="card-title">Total Deals</h5>
+          <div class="d-flex align-items-center">
+            <div class="display-4 me-3"><%= stats.total %></div>
+            <i class="bi bi-tag display-6"></i>
+          </div>
+          <p class="card-text mt-2 mb-0">Active deals across <%= stats.totalVendors %> vendors</p>
+        </div>
+        <div class="card-footer bg-primary border-0">
+          <a href="/deals" class="text-white text-decoration-none">View All Deals <i class="bi bi-arrow-right"></i></a>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Deals by Type -->
+    <div class="col-md-6 col-lg-3">
+      <div class="card h-100 bg-success text-white">
+        <div class="card-body">
+          <h5 class="card-title">Deals by Type</h5>
+          <div class="row text-center">
+            <div class="col-3">
+              <div class="fw-bold"><%= stats.byType.birthday %></div>
+              <div class="small">Birthday</div>
+            </div>
+            <div class="col-3">
+              <div class="fw-bold"><%= stats.byType.daily %></div>
+              <div class="small">Daily</div>
+            </div>
+            <div class="col-3">
+              <div class="fw-bold"><%= stats.byType.special %></div>
+              <div class="small">Special</div>
+            </div>
+            <div class="col-3">
+              <div class="fw-bold"><%= stats.byType.everyday %></div>
+              <div class="small">Everyday</div>
+            </div>
+          </div>
+        </div>
+        <div class="card-footer bg-success border-0">
+          <a href="#dealTypeChart" class="text-white text-decoration-none">View Distribution <i class="bi bi-arrow-right"></i></a>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Daily Deals -->
+    <div class="col-md-6 col-lg-3">
+      <div class="card h-100 bg-info text-white">
+        <div class="card-body">
+          <h5 class="card-title">Daily Deals</h5>
+          <div class="d-flex align-items-center">
+            <div class="display-4 me-3"><%= stats.byType.daily %></div>
+            <i class="bi bi-calendar-week display-6"></i>
+          </div>
+          <p class="card-text mt-2 mb-0"><%= stats.byDay.monday %> Mon | <%= stats.byDay.wednesday %> Wed | <%= stats.byDay.friday %> Fri</p>
+        </div>
+        <div class="card-footer bg-info border-0">
+          <a href="/deals?dealType=daily" class="text-white text-decoration-none">View Daily Deals <i class="bi bi-arrow-right"></i></a>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Expiring Soon -->
+    <div class="col-md-6 col-lg-3">
+      <div class="card h-100 bg-warning text-dark">
+        <div class="card-body">
+          <h5 class="card-title">Expiring Soon</h5>
+          <div class="d-flex align-items-center">
+            <div class="display-4 me-3"><%= stats.expiringSoon %></div>
+            <i class="bi bi-alarm display-6"></i>
+          </div>
+          <p class="card-text mt-2 mb-0">Special deals ending in the next 7 days</p>
+        </div>
+        <div class="card-footer bg-warning border-0">
+          <a href="#" class="text-dark text-decoration-none">View Expiring Deals <i class="bi bi-arrow-right"></i></a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="card mb-4">
+    <div class="card-body">
+      <form method="GET" action="/deals" class="row g-3">
+        <div class="col-md-3">
+          <label for="dealType" class="form-label">Deal Type</label>
+          <select id="dealType" name="dealType" class="form-select">
+            <option value="">All Types</option>
+            <% dealTypes.forEach(type => { %>
+              <option value="<%= type %>" <%= filters.dealType === type ? 'selected' : '' %>>
+                <%= type.charAt(0).toUpperCase() + type.slice(1) %>
+              </option>
+            <% }) %>
+          </select>
+        </div>
+        
+        <div class="col-md-3">
+          <label for="vendorId" class="form-label">Vendor</label>
+          <select id="vendorId" name="vendorId" class="form-select">
+            <option value="">All Vendors</option>
+            <% Object.entries(vendorData).sort((a, b) => a[1].name.localeCompare(b[1].name)).forEach(([id, vendor]) => { %>
+              <option value="<%= id %>" <%= filters.vendorId === id ? 'selected' : '' %>>
+                <%= vendor.name %>
+              </option>
+            <% }) %>
+          </select>
+        </div>
+        
+        <div class="col-md-2">
+          <label for="day" class="form-label">Day of Week</label>
+          <select id="day" name="day" class="form-select">
+            <option value="">All Days</option>
+            <% daysOfWeek.forEach(day => { %>
+              <option value="<%= day %>" <%= filters.day === day ? 'selected' : '' %>>
+                <%= day.charAt(0).toUpperCase() + day.slice(1) %>
+              </option>
+            <% }) %>
+          </select>
+        </div>
+        
+        <div class="col-md-2">
+          <label for="activeOnly" class="form-label">Status</label>
+          <div class="form-check form-switch pt-2">
+            <input class="form-check-input" type="checkbox" role="switch" id="activeOnly" name="activeOnly" value="true" <%= filters.activeOnly ? 'checked' : '' %>>
+            <label class="form-check-label" for="activeOnly">Active Deals Only</label>
+          </div>
+        </div>
+        
+        <div class="col-md-2 d-flex align-items-end">
+          <button type="submit" class="btn btn-primary w-100">Filter</button>
+        </div>
+        
+        <div class="col-md-12 d-flex justify-content-end">
+          <a href="/deals" class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-x-circle"></i> Clear Filters
+          </a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Deals Table -->
+  <div class="card">
+    <div class="card-body">
+      <% if (deals.length === 0) { %>
+        <div class="alert alert-info">
+          No deals found matching your criteria.
+        </div>
+      <% } else { %>
+        <div class="table-responsive">
+          <table class="table table-striped table-hover">
+            <thead>
+              <tr>
+                <th>Title</th>
+                <th>Vendor</th>
+                <th>Type</th>
+                <th>Discount</th>
+                <th>Day/Dates</th>
+                <th>Status</th>
+                <th>Updated</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% deals.forEach(deal => { %>
+                <tr>
+                  <td>
+                    <div class="fw-bold"><%= deal.title %></div>
+                    <div class="small text-muted text-truncate" style="max-width: 200px;"><%= deal.description %></div>
+                  </td>
+                  <td>
+                    <% if (vendorData[deal.vendorId]) { %>
+                      <a href="/vendors/<%= deal.vendorId %>" class="text-decoration-none">
+                        <%= vendorData[deal.vendorId].name %>
+                        <% if (!vendorData[deal.vendorId].isActive) { %>
+                          <span class="badge bg-warning">Inactive</span>
+                        <% } %>
+                      </a>
+                    <% } else { %>
+                      <span class="text-muted">Unknown Vendor</span>
+                    <% } %>
+                  </td>
+                  <td>
+                    <% if (deal.dealType === 'birthday') { %>
+                      <span class="badge bg-info">Birthday</span>
+                    <% } else if (deal.dealType === 'daily') { %>
+                      <span class="badge bg-success">Daily</span>
+                    <% } else if (deal.dealType === 'special') { %>
+                      <span class="badge bg-warning">Special</span>
+                    <% } else if (deal.dealType === 'everyday') { %>
+                      <span class="badge bg-primary">Everyday</span>
+                    <% } %>
+                  </td>
+                  <td><%= deal.discount %></td>
+                  <td>
+                    <% if (deal.dealType === 'daily') { %>
+                      <span class="badge bg-light text-dark">
+                        <%= deal.day.charAt(0).toUpperCase() + deal.day.slice(1) %>
+                      </span>
+                    <% } else if (deal.dealType === 'special') { %>
+                      <div class="small">
+                        <div><i class="bi bi-calendar-event"></i> Start: <%= new Date(deal.startDate).toLocaleDateString() %></div>
+                        <div><i class="bi bi-calendar-x"></i> End: <%= new Date(deal.endDate).toLocaleDateString() %></div>
+                      </div>
+                    <% } else if (deal.dealType === 'everyday') { %>
+                      <span class="badge bg-light text-dark">All Days</span>
+                    <% } else { %>
+                      <span class="badge bg-light text-dark">Birthday</span>
+                    <% } %>
+                  </td>
+                  <td>
+                    <form action="/deals/<%= deal.id %>/toggle-status" method="POST" class="d-inline">
+                      <input type="hidden" name="isActive" value="<%= !deal.isActive %>">
+                      <input type="hidden" name="returnUrl" value="<%= currentUrl %>">
+                      <button type="submit" class="btn btn-sm <%= deal.isActive ? 'btn-success' : 'btn-outline-secondary' %>" 
+                              title="<%= deal.isActive ? 'Deactivate deal' : 'Activate deal' %>">
+                        <%= deal.isActive ? 'Active' : 'Inactive' %>
+                      </button>
+                    </form>
+                  </td>
+                  <td>
+                    <%= new Date(deal.updatedAt).toLocaleDateString() %>
+                  </td>
+                  <td>
+                    <div class="btn-group" role="group">
+                      <a href="/deals/<%= deal.id %>/edit" class="btn btn-sm btn-warning">
+                        <i class="bi bi-pencil"></i>
+                      </a>
+                      <form action="/deals/<%= deal.id %>/duplicate" method="POST" class="d-inline">
+                        <button type="submit" class="btn btn-sm btn-info" title="Duplicate">
+                          <i class="bi bi-files"></i>
+                        </button>
+                      </form>
+                      <button type="button" class="btn btn-sm btn-danger" 
+                              data-bs-toggle="modal" 
+                              data-bs-target="#deleteModal" 
+                              data-deal-id="<%= deal.id %>"
+                              data-deal-title="<%= deal.title %>">
+                        <i class="bi bi-trash"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Pagination -->
+        <% if (pagination.total > 1) { %>
+          <nav aria-label="Deal pagination">
+            <ul class="pagination justify-content-center mt-4">
+              <% if (pagination.current > 1) { %>
+                <li class="page-item">
+                  <a class="page-link" href="/deals?page=<%= pagination.current - 1 %>&dealType=<%= filters.dealType %>&vendorId=<%= filters.vendorId %>&day=<%= filters.day %>&activeOnly=<%= filters.activeOnly %>" aria-label="Previous">
+                    <span aria-hidden="true">&laquo;</span>
+                  </a>
+                </li>
+              <% } else { %>
+                <li class="page-item disabled">
+                  <a class="page-link" href="#" aria-label="Previous">
+                    <span aria-hidden="true">&laquo;</span>
+                  </a>
+                </li>
+              <% } %>
+              
+              <% for (let i = 1; i <= pagination.total; i++) { %>
+                <li class="page-item <%= pagination.current === i ? 'active' : '' %>">
+                  <a class="page-link" href="/deals?page=<%= i %>&dealType=<%= filters.dealType %>&vendorId=<%= filters.vendorId %>&day=<%= filters.day %>&activeOnly=<%= filters.activeOnly %>"><%= i %></a>
+                </li>
+              <% } %>
+              
+              <% if (pagination.current < pagination.total) { %>
+                <li class="page-item">
+                  <a class="page-link" href="/deals?page=<%= pagination.current + 1 %>&dealType=<%= filters.dealType %>&vendorId=<%= filters.vendorId %>&day=<%= filters.day %>&activeOnly=<%= filters.activeOnly %>" aria-label="Next">
+                    <span aria-hidden="true">&raquo;</span>
+                  </a>
+                </li>
+              <% } else { %>
+                <li class="page-item disabled">
+                  <a class="page-link" href="#" aria-label="Next">
+                    <span aria-hidden="true">&raquo;</span>
+                  </a>
+                </li>
+              <% } %>
+            </ul>
+          </nav>
+        <% } %>
+      <% } %>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="deleteModalLabel">Confirm Delete</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        Are you sure you want to delete the deal "<strong id="dealTitle"></strong>"?
+        This action cannot be undone.
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <form id="deleteForm" method="POST" action="">
+          <button type="submit" class="btn btn-danger">Delete</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Setup delete modal
+    const deleteModal = document.getElementById('deleteModal');
+    deleteModal.addEventListener('show.bs.modal', event => {
+      const button = event.relatedTarget;
+      const dealId = button.getAttribute('data-deal-id');
+      const dealTitle = button.getAttribute('data-deal-title');
+      
+      document.getElementById('dealTitle').textContent = dealTitle;
+      document.getElementById('deleteForm').action = `/deals/${dealId}/delete`;
+    });
+  });
+</script>
+
+<%- include('../partials/footer') %>

@@ -168,15 +168,64 @@
     
     <!-- Vendors in Region -->
     <div class="col-lg-8">
+      <!-- Updated Vendors Card for Region Show View -->
       <div class="card mb-4">
         <div class="card-header d-flex justify-content-between align-items-center">
           <h5 class="card-title mb-0">Vendors in <%= region.name %></h5>
-          <span class="badge bg-primary"><%= vendors.length %></span>
+          
+          <!-- Status Filter Dropdown -->
+          <div class="d-flex align-items-center">
+            <div class="me-3">
+              <form id="statusFilterForm" method="GET" class="d-flex align-items-center">
+                <label for="statusFilter" class="form-label me-2 mb-0">Status:</label>
+                <select id="statusFilter" name="statusFilter" class="form-select form-select-sm" onchange="this.form.submit()">
+                  <option value="active" <%= statusFilter === 'active' ? 'selected' : '' %>>Active Only</option>
+                  <option value="inactive" <%= statusFilter === 'inactive' ? 'selected' : '' %>>Inactive</option>
+                  <option value="revoked" <%= statusFilter === 'revoked' ? 'selected' : '' %>>Revoked</option>
+                  <option value="all" <%= statusFilter === 'all' ? 'selected' : '' %>>All Statuses</option>
+                </select>
+              </form>
+            </div>
+            
+            <!-- Vendor Count Badge -->
+            <span class="badge bg-primary"><%= vendors.length %></span>
+          </div>
         </div>
+        
         <div class="card-body">
+          <!-- Status Count Summary -->
+          <div class="mb-3">
+            <div class="row text-center">
+              <div class="col-md-3">
+                <div class="p-2 border rounded">
+                  <div class="small text-muted">Total</div>
+                  <div class="fw-bold"><%= stats.totalCount %></div>
+                </div>
+              </div>
+              <div class="col-md-3">
+                <div class="p-2 border rounded bg-success bg-opacity-10">
+                  <div class="small text-muted">Active</div>
+                  <div class="fw-bold text-success"><%= stats.activeCount %></div>
+                </div>
+              </div>
+              <div class="col-md-3">
+                <div class="p-2 border rounded bg-warning bg-opacity-10">
+                  <div class="small text-muted">Inactive</div>
+                  <div class="fw-bold text-warning"><%= stats.inactiveCount %></div>
+                </div>
+              </div>
+              <div class="col-md-3">
+                <div class="p-2 border rounded bg-danger bg-opacity-10">
+                  <div class="small text-muted">Revoked</div>
+                  <div class="fw-bold text-danger"><%= stats.revokedCount %></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
           <% if (vendors.length === 0) { %>
             <div class="alert alert-info">
-              No vendors found in this region.
+              No vendors found in this region with the selected status filter.
             </div>
           <% } else { %>
             <div class="table-responsive">
@@ -197,19 +246,76 @@
                         <a href="/vendors/<%= vendor.id %>" class="fw-bold text-decoration-none">
                           <%= vendor.name %>
                         </a>
+                        <% if (vendor.isPartner) { %>
+                          <span class="badge bg-warning ms-1" title="Featured Partner">
+                            <i class="bi bi-star-fill"></i>
+                          </span>
+                        <% } %>
                       </td>
                       <td>
-                        <% if (vendor.status === 'Active-Operating') { %>
-                          <span class="badge bg-success">Active</span>
-                        <% } else if (vendor.status === 'Active-Pending Inspection') { %>
-                          <span class="badge bg-warning">Pending</span>
-                        <% } else if (vendor.status === 'Expired') { %>
-                          <span class="badge bg-secondary">Expired</span>
-                        <% } else if (vendor.status === 'Revoked') { %>
-                          <span class="badge bg-danger">Revoked</span>
-                        <% } else { %>
-                          <span class="badge bg-info"><%= vendor.status %></span>
-                        <% } %>
+                        <div class="d-flex align-items-center">
+                          <span class="badge <%= vendor.statusBadgeClass %> me-2">
+                            <%= vendor.status %>
+                          </span>
+                          <% if (vendor.isActiveVendor) { %>
+                            <i class="bi bi-shop text-success me-2" title="Active Business"></i>
+                          <% } %>
+                          
+                          <!-- Status Update Dropdown -->
+                          <div class="dropdown">
+                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" 
+                                    id="statusDropdown<%= vendor.id %>" data-bs-toggle="dropdown" 
+                                    aria-expanded="false" title="Update status">
+                              <i class="bi bi-pencil-square"></i>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="statusDropdown<%= vendor.id %>">
+                              <li class="dropdown-header">Update Status</li>
+                              <!-- Active Statuses -->
+                              <li><button class="dropdown-item text-success <%= vendor.status === 'Active-Operating' ? 'active' : '' %>" 
+                                          type="button" data-status="Active-Operating" data-vendor-id="<%= vendor.id %>">
+                                Active-Operating
+                              </button></li>
+                              <li><button class="dropdown-item text-warning <%= vendor.status === 'Active-Pending Inspection' ? 'active' : '' %>" 
+                                          type="button" data-status="Active-Pending Inspection" data-vendor-id="<%= vendor.id %>">
+                                Active-Pending Inspection
+                              </button></li>
+                              <li><button class="dropdown-item text-primary <%= vendor.status === 'Delegated' ? 'active' : '' %>" 
+                                          type="button" data-status="Delegated" data-vendor-id="<%= vendor.id %>">
+                                Delegated
+                              </button></li>
+                              <li><button class="dropdown-item text-primary <%= vendor.status === 'Returned' ? 'active' : '' %>" 
+                                          type="button" data-status="Returned" data-vendor-id="<%= vendor.id %>">
+                                Returned
+                              </button></li>
+                              <li><hr class="dropdown-divider"></li>
+                              <!-- Inactive Statuses -->
+                              <li><button class="dropdown-item text-secondary <%= vendor.status === 'Expired' ? 'active' : '' %>" 
+                                          type="button" data-status="Expired" data-vendor-id="<%= vendor.id %>">
+                                Expired
+                              </button></li>
+                              <li><button class="dropdown-item text-secondary <%= vendor.status === 'Surrendered' ? 'active' : '' %>" 
+                                          type="button" data-status="Surrendered" data-vendor-id="<%= vendor.id %>">
+                                Surrendered
+                              </button></li>
+                              <li><button class="dropdown-item text-secondary <%= vendor.status === 'Suspended' ? 'active' : '' %>" 
+                                          type="button" data-status="Suspended" data-vendor-id="<%= vendor.id %>">
+                                Suspended
+                              </button></li>
+                              <li><hr class="dropdown-divider"></li>
+                              <!-- Revoked Status -->
+                              <li><button class="dropdown-item text-danger <%= vendor.status === 'Revoked' ? 'active' : '' %>" 
+                                          type="button" data-status="Revoked" data-vendor-id="<%= vendor.id %>">
+                                Revoked
+                              </button></li>
+                            </ul>
+                          </div>
+                          
+                          <% if (vendor.statusChanges && vendor.statusChanges.length > 0) { %>
+                            <span class="ms-2" title="Status has been manually updated">
+                              <i class="bi bi-info-circle text-info"></i>
+                            </span>
+                          <% } %>
+                        </div>
                       </td>
                       <td><%= vendor.location ? vendor.location.address : 'None' %></td>
                       <td>
@@ -239,7 +345,7 @@
             
             <% if (vendors.length > 10) { %>
               <div class="mt-3">
-                <a href="/vendors?region=<%= region.name %>" class="btn btn-primary">
+                <a href="/vendors?region=<%= region.name %>&statusFilter=<%= statusFilter %>" class="btn btn-primary">
                   View All Vendors in <%= region.name %>
                 </a>
               </div>
@@ -334,5 +440,101 @@
     }
   });
 </script>
+
+<!-- Add this script at the bottom of regions/show.ejs, right before the closing body tag -->
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Status update dropdowns
+    const statusUpdateModal = new bootstrap.Modal(document.getElementById('statusUpdateModal'));
+    const statusForm = document.getElementById('statusUpdateForm');
+    const vendorNameEl = document.getElementById('vendorName');
+    const oldStatusEl = document.getElementById('oldStatus');
+    const newStatusEl = document.getElementById('newStatus');
+    const statusValueInput = document.getElementById('statusValue');
+    const returnUrlInput = document.getElementById('returnUrl');
+    
+    // Add click event listeners to all status dropdown items
+    document.querySelectorAll('.dropdown-item[data-status]').forEach(item => {
+      item.addEventListener('click', function() {
+        const vendorId = this.getAttribute('data-vendor-id');
+        const newStatus = this.getAttribute('data-status');
+        const vendorRow = this.closest('tr');
+        const vendorName = vendorRow.querySelector('td:first-child a').textContent.trim();
+        const currentStatus = vendorRow.querySelector('.badge').textContent.trim();
+        
+        // Set form action and values
+        statusForm.action = `/vendors/${vendorId}/update-status`;
+        statusValueInput.value = newStatus;
+        returnUrlInput.value = window.location.href; // Current page URL
+        
+        // Update modal content
+        vendorNameEl.textContent = vendorName;
+        oldStatusEl.textContent = currentStatus;
+        newStatusEl.textContent = newStatus;
+        
+        // Set badge colors
+        switch(newStatus) {
+          case 'Active-Operating':
+          case 'Active':
+          case 'Operating':
+            newStatusEl.className = 'badge bg-success';
+            break;
+          case 'Active-Pending Inspection':
+          case 'Pending Inspection':
+          case 'Delegated':
+          case 'Returned':
+            newStatusEl.className = 'badge bg-warning';
+            break;
+          case 'Expired':
+          case 'Surrendered':
+          case 'Suspended':
+            newStatusEl.className = 'badge bg-secondary';
+            break;
+          case 'Revoked':
+            newStatusEl.className = 'badge bg-danger';
+            break;
+          default:
+            newStatusEl.className = 'badge bg-info';
+        }
+        
+        // Clear previous notes
+        document.getElementById('statusNotes').value = '';
+        
+        // Show the modal
+        statusUpdateModal.show();
+      });
+    });
+  });
+</script>
+
+<!-- Status Update Modal -->
+<div class="modal fade" id="statusUpdateModal" tabindex="-1" aria-labelledby="statusUpdateModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form id="statusUpdateForm" method="POST" action="">
+        <div class="modal-header">
+          <h5 class="modal-title" id="statusUpdateModalLabel">Update Vendor Status</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p>You are about to update the status of <strong id="vendorName">this vendor</strong> from <span id="oldStatus" class="badge bg-secondary">Unknown</span> to <span id="newStatus" class="badge bg-primary">Unknown</span>.</p>
+          
+          <div class="form-group mb-3">
+            <label for="statusNotes" class="form-label">Notes (optional)</label>
+            <textarea class="form-control" id="statusNotes" name="notes" rows="3" placeholder="Add any notes about why you're changing the status"></textarea>
+            <div class="form-text">These notes will be saved with the status change history.</div>
+          </div>
+          
+          <input type="hidden" id="statusValue" name="status" value="">
+          <input type="hidden" id="returnUrl" name="returnUrl" value="">
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary">Update Status</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
 
 <%- include('../partials/footer') %>
