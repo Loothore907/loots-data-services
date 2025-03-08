@@ -1,0 +1,310 @@
+<!-- views/workflows/execute.ejs -->
+<%- include('../partials/header') %>
+
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><%= workflow.name %></h1>
+    <a href="/workflows" class="btn btn-outline-secondary">
+      <i class="bi bi-arrow-left"></i> Back to Workflows
+    </a>
+  </div>
+
+  <div class="row g-4">
+    <!-- Workflow Information -->
+    <div class="col-lg-4">
+      <div class="card mb-4">
+        <div class="card-header">
+          <h5 class="card-title mb-0">Workflow Information</h5>
+        </div>
+        <div class="card-body">
+          <p class="card-text"><%= workflow.description %></p>
+          <p class="text-muted small">Script: <%= workflow.script %></p>
+          
+          <% if (isRunning) { %>
+            <div class="alert alert-info">
+              <i class="bi bi-gear-wide-connected"></i> This workflow is currently running.
+            </div>
+          <% } %>
+        </div>
+      </div>
+      
+      <!-- Workflow Parameters -->
+      <% if (!isRunning && workflow.params.length > 0) { %>
+        <div class="card">
+          <div class="card-header">
+            <h5 class="card-title mb-0">Workflow Parameters</h5>
+          </div>
+          <div class="card-body">
+            <form id="workflowForm" method="POST" action="/workflows/<%= workflow.id %>/execute" enctype="multipart/form-data">
+              <% workflow.params.forEach(param => { %>
+                <div class="mb-3">
+                  <label for="<%= param.name %>" class="form-label">
+                    <%= param.label %>
+                    <% if (param.required) { %><span class="text-danger">*</span><% } %>
+                  </label>
+                  
+                  <% if (param.type === 'file') { %>
+                    <input type="file" class="form-control" id="<%= param.name %>" name="<%= param.name %>" 
+                           <%= param.required ? 'required' : '' %>>
+                  <% } else if (param.type === 'checkbox') { %>
+                    <div class="form-check">
+                      <input class="form-check-input" type="checkbox" id="<%= param.name %>" name="<%= param.name %>" 
+                             <%= param.default ? 'checked' : '' %>>
+                      <label class="form-check-label" for="<%= param.name %>">
+                        Enable
+                      </label>
+                    </div>
+                  <% } else if (param.type === 'select') { %>
+                    <select class="form-select" id="<%= param.name %>" name="<%= param.name %>" 
+                           <%= param.required ? 'required' : '' %>>
+                      <option value="">Select...</option>
+                      <% param.options.forEach(option => { %>
+                        <option value="<%= option.value %>" <%= option.value === param.default ? 'selected' : '' %>>
+                          <%= option.label %>
+                        </option>
+                      <% }) %>
+                    </select>
+                  <% } else { %>
+                    <input type="<%= param.type %>" class="form-control" id="<%= param.name %>" name="<%= param.name %>" 
+                           value="<%= param.default || '' %>" <%= param.required ? 'required' : '' %>>
+                  <% } %>
+                  
+                  <% if (param.description) { %>
+                    <div class="form-text"><%= param.description %></div>
+                  <% } %>
+                </div>
+              <% }) %>
+              
+              <button type="submit" class="btn btn-primary w-100" id="executeBtn">
+                <i class="bi bi-play-fill"></i> Execute Workflow
+              </button>
+            </form>
+          </div>
+        </div>
+      <% } %>
+    </div>
+    
+    <!-- Execution Status and Logs -->
+    <div class="col-lg-8">
+      <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h5 class="card-title mb-0">Execution Status</h5>
+          <% if (isRunning) { %>
+            <span class="badge bg-info text-white">Running</span>
+          <% } else if (logs && logs.length > 0) { %>
+            <span class="badge bg-success text-white">Completed</span>
+          <% } else { %>
+            <span class="badge bg-secondary text-white">Not Started</span>
+          <% } %>
+        </div>
+        <div class="card-body">
+          <% if (isRunning || logs.length > 0) { %>
+            <!-- Progress Indicator -->
+            <div class="progress mb-3" id="progressBar" style="height: 20px;">
+              <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: <%= isRunning ? '75%' : '100%' %>"></div>
+            </div>
+            
+            <!-- Logs Output -->
+            <div class="card bg-dark text-light">
+              <div class="card-header d-flex justify-content-between align-items-center py-2">
+                <span>Logs</span>
+                <% if (isRunning) { %>
+                  <div>
+                    <button id="autoScrollBtn" class="btn btn-sm btn-outline-light active" type="button">
+                      <i class="bi bi-arrow-down-square"></i> Auto-scroll
+                    </button>
+                    <button id="clearLogsBtn" class="btn btn-sm btn-outline-light" type="button">
+                      <i class="bi bi-trash"></i> Clear
+                    </button>
+                  </div>
+                <% } %>
+              </div>
+              <div class="card-body p-0">
+                <pre id="logsContainer" class="m-0 p-3" style="max-height: 500px; overflow-y: auto; white-space: pre-wrap;"><% logs.forEach(log => { %>
+<span class="text-<%= log.type === 'error' ? 'danger' : 'light' %>">[<%= new Date(log.time).toLocaleTimeString() %>] <%= log.text %></span>
+<% }) %></pre>
+              </div>
+            </div>
+          <% } else { %>
+            <div class="text-center py-5">
+              <i class="bi bi-play-circle display-1 text-muted"></i>
+              <p class="mt-3">Set parameters and click "Execute Workflow" to start.</p>
+            </div>
+          <% } %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Execution JS -->
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const workflowId = '<%= workflow.id %>';
+    const workflowForm = document.getElementById('workflowForm');
+    const executeBtn = document.getElementById('executeBtn');
+    const logsContainer = document.getElementById('logsContainer');
+    const progressBar = document.getElementById('progressBar');
+    
+    let isRunning = <%- isRunning ? 'true' : 'false' %>;
+    let autoScroll = true;
+    let lastLogTime = null;
+    
+    // Form submission handler
+    if (workflowForm) {
+      workflowForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        if (isRunning) {
+          alert('Workflow already running!');
+          return;
+        }
+        
+        try {
+          // Disable button and show spinner
+          executeBtn.disabled = true;
+          executeBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Starting...';
+          
+          // Submit form data
+          const formData = new FormData(workflowForm);
+          const response = await fetch(`/workflows/${workflowId}/execute`, {
+            method: 'POST',
+            body: formData
+          });
+          
+          const result = await response.json();
+          
+          if (result.success) {
+            // Clear existing logs
+            if (logsContainer) {
+              logsContainer.innerHTML = '';
+            }
+            
+            // Update UI to show running state
+            isRunning = true;
+            
+            // Reload page to show execution status
+            window.location.reload();
+          } else {
+            alert('Error starting workflow: ' + result.error);
+            executeBtn.disabled = false;
+            executeBtn.innerHTML = '<i class="bi bi-play-fill"></i> Execute Workflow';
+          }
+        } catch (error) {
+          alert('Error: ' + error.message);
+          executeBtn.disabled = false;
+          executeBtn.innerHTML = '<i class="bi bi-play-fill"></i> Execute Workflow';
+        }
+      });
+    }
+    
+    // Handle auto-scroll button
+    const autoScrollBtn = document.getElementById('autoScrollBtn');
+    if (autoScrollBtn) {
+      autoScrollBtn.addEventListener('click', function() {
+        autoScroll = !autoScroll;
+        this.classList.toggle('active', autoScroll);
+      });
+    }
+    
+    // Handle clear logs button
+    const clearLogsBtn = document.getElementById('clearLogsBtn');
+    if (clearLogsBtn) {
+      clearLogsBtn.addEventListener('click', function() {
+        if (logsContainer) {
+          logsContainer.innerHTML = '';
+        }
+      });
+    }
+    
+    // Poll for status updates if workflow is running
+    if (isRunning && logsContainer) {
+      // Find the latest log time
+      const logEntries = logsContainer.querySelectorAll('span');
+      if (logEntries.length > 0) {
+        const timeString = logEntries[logEntries.length - 1].textContent.match(/\[(.*?)\]/);
+        if (timeString && timeString[1]) {
+          lastLogTime = new Date().toISOString();
+        }
+      }
+      
+      // Poll for updates
+      const pollInterval = setInterval(async function() {
+        try {
+          const params = new URLSearchParams();
+          if (lastLogTime) {
+            params.append('after', lastLogTime);
+          }
+          
+          const response = await fetch(`/workflows/${workflowId}/status?${params.toString()}`);
+          const data = await response.json();
+          
+          if (data.success) {
+            // Update status
+            isRunning = data.workflow.status === 'running';
+            
+            // Append new logs
+            if (data.logs && data.logs.length > 0) {
+              data.logs.forEach(log => {
+                const logElement = document.createElement('span');
+                logElement.className = `text-${log.type === 'error' ? 'danger' : 'light'}`;
+                logElement.textContent = `[${new Date(log.time).toLocaleTimeString()}] ${log.text}`;
+                logsContainer.appendChild(document.createElement('br'));
+                logsContainer.appendChild(logElement);
+                
+                lastLogTime = log.time;
+              });
+              
+              // Auto-scroll
+              if (autoScroll) {
+                logsContainer.scrollTop = logsContainer.scrollHeight;
+              }
+            }
+            
+            // Update progress bar if completed
+            if (!isRunning && data.workflow.status === 'completed') {
+              progressBar.querySelector('.progress-bar').style.width = '100%';
+              progressBar.querySelector('.progress-bar').classList.remove('progress-bar-animated');
+              
+              // Change status badge
+              const statusBadge = document.querySelector('.card-header .badge');
+              if (statusBadge) {
+                statusBadge.className = 'badge bg-success text-white';
+                statusBadge.textContent = 'Completed';
+              }
+              
+              // Stop polling
+              clearInterval(pollInterval);
+              
+              // Reload page to show completed state
+              setTimeout(() => {
+                window.location.reload();
+              }, 1000);
+            } else if (!isRunning && data.workflow.status === 'failed') {
+              progressBar.querySelector('.progress-bar').style.width = '100%';
+              progressBar.querySelector('.progress-bar').classList.remove('progress-bar-animated');
+              progressBar.querySelector('.progress-bar').classList.remove('bg-primary');
+              progressBar.querySelector('.progress-bar').classList.add('bg-danger');
+              
+              // Change status badge
+              const statusBadge = document.querySelector('.card-header .badge');
+              if (statusBadge) {
+                statusBadge.className = 'badge bg-danger text-white';
+                statusBadge.textContent = 'Failed';
+              }
+              
+              // Stop polling
+              clearInterval(pollInterval);
+            }
+          } else {
+            console.error('Error fetching status:', data.error);
+          }
+        } catch (error) {
+          console.error('Error polling for updates:', error);
+        }
+      }, 1000);
+    }
+  });
+</script>
+
+<%- include('../partials/footer') %>

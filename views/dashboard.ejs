@@ -1,0 +1,257 @@
+<!-- views/dashboard.ejs -->
+<%- include('partials/header') %>
+
+<div class="container py-4">
+  <h1 class="mb-4">Loot's Ganja Guide Dashboard</h1>
+  
+  <div class="row g-4">
+    <!-- Stats Cards -->
+    <div class="col-md-6 col-lg-3">
+      <div class="card h-100 bg-primary text-white">
+        <div class="card-body">
+          <h5 class="card-title">Total Vendors</h5>
+          <div class="d-flex align-items-center">
+            <div class="display-4 me-3"><%= stats.vendorCount %></div>
+            <i class="bi bi-shop display-6"></i>
+          </div>
+          <p class="card-text mt-2 mb-0">Total vendors in database</p>
+        </div>
+        <div class="card-footer bg-primary border-0">
+          <a href="/vendors" class="text-white text-decoration-none">View All Vendors <i class="bi bi-arrow-right"></i></a>
+        </div>
+      </div>
+    </div>
+    
+    <div class="col-md-6 col-lg-3">
+      <div class="card h-100 bg-success text-white">
+        <div class="card-body">
+          <h5 class="card-title">Active Vendors</h5>
+          <div class="d-flex align-items-center">
+            <div class="display-4 me-3">
+              <% if (typeof stats.activeCount !== 'undefined') { %>
+                <%= stats.activeCount %>
+              <% } else { %>
+                <span class="small">N/A</span>
+              <% } %>
+            </div>
+            <i class="bi bi-check-circle display-6"></i>
+          </div>
+          <p class="card-text mt-2 mb-0">Currently operating vendors</p>
+        </div>
+        <div class="card-footer bg-success border-0">
+          <a href="/vendors?status=Active-Operating" class="text-white text-decoration-none">View Active Vendors <i class="bi bi-arrow-right"></i></a>
+        </div>
+      </div>
+    </div>
+    
+    <div class="col-md-6 col-lg-3">
+      <div class="card h-100 bg-info text-white">
+        <div class="card-body">
+          <h5 class="card-title">Priority Regions</h5>
+          <div class="d-flex align-items-center">
+            <div class="display-4 me-3">5</div>
+            <i class="bi bi-geo-alt display-6"></i>
+          </div>
+          <p class="card-text mt-2 mb-0">Regions with active coverage</p>
+        </div>
+        <div class="card-footer bg-info border-0">
+          <a href="#" class="text-white text-decoration-none">View Coverage Map <i class="bi bi-arrow-right"></i></a>
+        </div>
+      </div>
+    </div>
+    
+    <div class="col-md-6 col-lg-3">
+      <div class="card h-100 bg-warning text-dark">
+        <div class="card-body">
+          <h5 class="card-title">Partner Vendors</h5>
+          <div class="d-flex align-items-center">
+            <div class="display-4 me-3">
+              <% if (typeof stats.partnerCount !== 'undefined') { %>
+                <%= stats.partnerCount %>
+              <% } else { %>
+                <span class="small">N/A</span>
+              <% } %>
+            </div>
+            <i class="bi bi-star display-6"></i>
+          </div>
+          <p class="card-text mt-2 mb-0">Featured partner vendors</p>
+        </div>
+        <div class="card-footer bg-warning border-0">
+          <a href="#" class="text-dark text-decoration-none">View Partners <i class="bi bi-arrow-right"></i></a>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Quick Actions -->
+    <div class="col-lg-8">
+      <div class="card h-100">
+        <div class="card-header">
+          <h5 class="card-title mb-0">Quick Actions</h5>
+        </div>
+        <div class="card-body">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <div class="card h-100 border-0 bg-light">
+                <div class="card-body">
+                  <h6 class="card-title"><i class="bi bi-shop"></i> Vendor Management</h6>
+                  <p class="card-text small">Add, edit or remove vendor listings from the database.</p>
+                </div>
+                <div class="card-footer bg-light border-0 pt-0">
+                  <a href="/vendors" class="btn btn-sm btn-outline-primary">Manage Vendors</a>
+                  <a href="/vendors/new" class="btn btn-sm btn-outline-success">Add New</a>
+                </div>
+              </div>
+            </div>
+            
+            <div class="col-md-6">
+              <div class="card h-100 border-0 bg-light">
+                <div class="card-body">
+                  <h6 class="card-title"><i class="bi bi-geo-alt"></i> Geocoding</h6>
+                  <p class="card-text small">Convert addresses to coordinates for map display.</p>
+                </div>
+                <div class="card-footer bg-light border-0 pt-0">
+                  <a href="/workflows/geocode" class="btn btn-sm btn-outline-primary">Geocode Addresses</a>
+                </div>
+              </div>
+            </div>
+            
+            <div class="col-md-6">
+              <div class="card h-100 border-0 bg-light">
+                <div class="card-body">
+                  <h6 class="card-title"><i class="bi bi-arrow-repeat"></i> Data Processing</h6>
+                  <p class="card-text small">Import, transform, and sync vendor data.</p>
+                </div>
+                <div class="card-footer bg-light border-0 pt-0">
+                  <a href="/workflows/import" class="btn btn-sm btn-outline-primary">Import Data</a>
+                  <a href="/workflows/process-priority" class="btn btn-sm btn-outline-primary">Process Regions</a>
+                </div>
+              </div>
+            </div>
+            
+            <div class="col-md-6">
+              <div class="card h-100 border-0 bg-light">
+                <div class="card-body">
+                  <h6 class="card-title"><i class="bi bi-cloud-arrow-up"></i> Firebase Sync</h6>
+                  <p class="card-text small">Sync processed data to Firebase Firestore.</p>
+                </div>
+                <div class="card-footer bg-light border-0 pt-0">
+                  <a href="/workflows/sync" class="btn btn-sm btn-outline-primary">Sync to Firebase</a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Recent Activity -->
+    <div class="col-lg-4">
+      <div class="card h-100">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h5 class="card-title mb-0">Recent Activity</h5>
+          <a href="/workflows" class="btn btn-sm btn-outline-primary">All Workflows</a>
+        </div>
+        <div class="card-body p-0">
+          <% if (stats.recentWorkflows && stats.recentWorkflows.length > 0) { %>
+            <ul class="list-group list-group-flush">
+              <% stats.recentWorkflows.forEach(workflow => { %>
+                <li class="list-group-item">
+                  <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                      <h6 class="mb-0"><%= workflow.id %></h6>
+                      <small class="text-muted">
+                        <%= new Date(workflow.startTime).toLocaleString() %>
+                      </small>
+                    </div>
+                    <span class="badge <%= workflow.status === 'completed' ? 'bg-success' : workflow.status === 'failed' ? 'bg-danger' : 'bg-info' %>">
+                      <%= workflow.status %>
+                    </span>
+                  </div>
+                </li>
+              <% }) %>
+            </ul>
+          <% } else { %>
+            <div class="text-center py-5">
+              <i class="bi bi-clock-history display-1 text-muted"></i>
+              <p class="mt-3">No recent workflow activity</p>
+            </div>
+          <% } %>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Data Health -->
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header">
+          <h5 class="card-title mb-0">Data Health Overview</h5>
+        </div>
+        <div class="card-body">
+          <div class="row g-3">
+            <div class="col-md-3">
+              <div class="card border-0 bg-light h-100">
+                <div class="card-body text-center">
+                  <h3 class="text-success">
+                    <% if (typeof stats.geocodedPercent !== 'undefined') { %>
+                      <%= stats.geocodedPercent %>%
+                    <% } else { %>
+                      <span class="small">N/A</span>
+                    <% } %>
+                  </h3>
+                  <p class="card-text">Vendors with Coordinates</p>
+                </div>
+              </div>
+            </div>
+            
+            <div class="col-md-3">
+              <div class="card border-0 bg-light h-100">
+                <div class="card-body text-center">
+                  <h3 class="text-warning">
+                    <% if (typeof stats.incompletePercent !== 'undefined') { %>
+                      <%= stats.incompletePercent %>%
+                    <% } else { %>
+                      <span class="small">N/A</span>
+                    <% } %>
+                  </h3>
+                  <p class="card-text">Incomplete Records</p>
+                </div>
+              </div>
+            </div>
+            
+            <div class="col-md-3">
+              <div class="card border-0 bg-light h-100">
+                <div class="card-body text-center">
+                  <h3 class="text-info">
+                    <% if (typeof stats.priorityRegionPercent !== 'undefined') { %>
+                      <%= stats.priorityRegionPercent %>%
+                    <% } else { %>
+                      <span class="small">N/A</span>
+                    <% } %>
+                  </h3>
+                  <p class="card-text">In Priority Regions</p>
+                </div>
+              </div>
+            </div>
+            
+            <div class="col-md-3">
+              <div class="card border-0 bg-light h-100">
+                <div class="card-body text-center">
+                  <h3 class="text-danger">
+                    <% if (typeof stats.invalidPercent !== 'undefined') { %>
+                      <%= stats.invalidPercent %>%
+                    <% } else { %>
+                      <span class="small">N/A</span>
+                    <% } %>
+                  </h3>
+                  <p class="card-text">Data Validation Issues</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('partials/footer') %>

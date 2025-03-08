@@ -1,0 +1,303 @@
+<!-- views/vendors/show.ejs -->
+<%- include('../partials/header') %>
+
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-1">
+          <li class="breadcrumb-item"><a href="/vendors">Vendors</a></li>
+          <li class="breadcrumb-item active" aria-current="page"><%= vendor.name %></li>
+        </ol>
+      </nav>
+      <h1><%= vendor.name %></h1>
+    </div>
+    <div>
+      <div class="btn-group" role="group">
+        <a href="/vendors/<%= vendor.id %>/edit" class="btn btn-warning">
+          <i class="bi bi-pencil"></i> Edit
+        </a>
+        <button type="button" class="btn btn-danger" 
+                data-bs-toggle="modal" 
+                data-bs-target="#deleteModal" 
+                data-vendor-id="<%= vendor.id %>"
+                data-vendor-name="<%= vendor.name %>">
+          <i class="bi bi-trash"></i> Delete
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <!-- Main Vendor Info -->
+    <div class="col-lg-4">
+      <div class="card mb-4">
+        <div class="card-header">
+          <h5 class="card-title">Basic Information</h5>
+        </div>
+        <div class="card-body">
+          <div class="mb-3 d-flex align-items-center">
+            <% if (vendor.isPartner) { %>
+              <span class="badge bg-warning me-2">Featured Partner</span>
+            <% } %>
+            
+            <% if (vendor.status === 'Active-Operating') { %>
+              <span class="badge bg-success">Active-Operating</span>
+            <% } else if (vendor.status === 'Active-Pending Inspection') { %>
+              <span class="badge bg-warning">Active-Pending Inspection</span>
+            <% } else if (vendor.status === 'Expired') { %>
+              <span class="badge bg-secondary">Expired</span>
+            <% } else if (vendor.status === 'Revoked') { %>
+              <span class="badge bg-danger">Revoked</span>
+            <% } else { %>
+              <span class="badge bg-info"><%= vendor.status %></span>
+            <% } %>
+          </div>
+          
+          <dl class="row mb-0">
+            <dt class="col-sm-5">Business License</dt>
+            <dd class="col-sm-7"><%= vendor.business_license || 'Not specified' %></dd>
+            
+            <dt class="col-sm-5">License Type</dt>
+            <dd class="col-sm-7"><%= vendor.license_type || 'Not specified' %></dd>
+            
+            <dt class="col-sm-5">Last Updated</dt>
+            <dd class="col-sm-7"><%= vendor.lastUpdated ? new Date(vendor.lastUpdated).toLocaleString() : 'Never' %></dd>
+          </dl>
+        </div>
+      </div>
+      
+      <!-- Contact Info -->
+      <div class="card mb-4">
+        <div class="card-header">
+          <h5 class="card-title">Contact Information</h5>
+        </div>
+        <div class="card-body">
+          <dl class="row mb-0">
+            <dt class="col-sm-4">Phone</dt>
+            <dd class="col-sm-8">
+              <% if (vendor.contact && vendor.contact.phone) { %>
+                <a href="tel:<%= vendor.contact.phone %>"><%= vendor.contact.phone %></a>
+              <% } else { %>
+                Not specified
+              <% } %>
+            </dd>
+            
+            <dt class="col-sm-4">Email</dt>
+            <dd class="col-sm-8">
+              <% if (vendor.contact && vendor.contact.email) { %>
+                <a href="mailto:<%= vendor.contact.email %>"><%= vendor.contact.email %></a>
+              <% } else { %>
+                Not specified
+              <% } %>
+            </dd>
+            
+            <% if (vendor.contact && vendor.contact.social) { %>
+              <% if (vendor.contact.social.instagram) { %>
+                <dt class="col-sm-4">Instagram</dt>
+                <dd class="col-sm-8">
+                  <a href="https://instagram.com/<%= vendor.contact.social.instagram %>" target="_blank">
+                    @<%= vendor.contact.social.instagram %>
+                  </a>
+                </dd>
+              <% } %>
+              
+              <% if (vendor.contact.social.facebook) { %>
+                <dt class="col-sm-4">Facebook</dt>
+                <dd class="col-sm-8">
+                  <a href="<%= vendor.contact.social.facebook %>" target="_blank">
+                    <%= vendor.contact.social.facebook.replace('https://facebook.com/', '').replace('https://www.facebook.com/', '') %>
+                  </a>
+                </dd>
+              <% } %>
+            <% } %>
+          </dl>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Location Info -->
+    <div class="col-lg-8">
+      <div class="card mb-4">
+        <div class="card-header">
+          <h5 class="card-title">Location</h5>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <h6>Address</h6>
+              <p><%= vendor.location ? vendor.location.address : 'Not specified' %></p>
+              
+              <% if (vendor.location && vendor.location.coordinates) { %>
+                <h6>Coordinates</h6>
+                <p>
+                  Latitude: <%= vendor.location.coordinates.latitude || 'Not specified' %><br>
+                  Longitude: <%= vendor.location.coordinates.longitude || 'Not specified' %>
+                </p>
+                
+                <% if (vendor.location.coordinates.latitude && vendor.location.coordinates.longitude) { %>
+                  <a href="https://www.google.com/maps/search/?api=1&query=<%= vendor.location.coordinates.latitude %>,<%= vendor.location.coordinates.longitude %>" 
+                     class="btn btn-sm btn-outline-primary" target="_blank">
+                    <i class="bi bi-box-arrow-up-right"></i> View on Google Maps
+                  </a>
+                <% } %>
+              <% } %>
+            </div>
+            
+            <div class="col-md-6">
+              <div id="locationMap" style="height: 250px; width: 100%;" class="border rounded"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="row">
+        <!-- Hours -->
+        <div class="col-md-6">
+          <div class="card mb-4">
+            <div class="card-header">
+              <h5 class="card-title">Hours of Operation</h5>
+            </div>
+            <div class="card-body">
+              <% if (vendor.hours && Object.keys(vendor.hours).length > 0) { %>
+                <ul class="list-group list-group-flush">
+                  <% const daysOrder = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']; %>
+                  <% const daysCapitalized = {
+                      monday: 'Monday',
+                      tuesday: 'Tuesday',
+                      wednesday: 'Wednesday',
+                      thursday: 'Thursday',
+                      friday: 'Friday',
+                      saturday: 'Saturday',
+                      sunday: 'Sunday'
+                    }; %>
+                    
+                  <% daysOrder.forEach(day => { %>
+                    <% if (vendor.hours[day]) { %>
+                      <li class="list-group-item px-0">
+                        <div class="d-flex justify-content-between">
+                          <strong><%= daysCapitalized[day] %>:</strong>
+                          <span>
+                            <%= vendor.hours[day].open || 'Closed' %> - <%= vendor.hours[day].close || 'Closed' %>
+                          </span>
+                        </div>
+                      </li>
+                    <% } %>
+                  <% }); %>
+                </ul>
+              <% } else { %>
+                <p class="text-muted mb-0">No hours of operation specified.</p>
+              <% } %>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Deals -->
+        <div class="col-md-6">
+          <div class="card mb-4">
+            <div class="card-header">
+              <h5 class="card-title">Deals & Specials</h5>
+            </div>
+            <div class="card-body">
+              <% if (vendor.deals && vendor.deals.length > 0) { %>
+                <div class="accordion" id="dealsAccordion">
+                  <% vendor.deals.forEach((deal, index) => { %>
+                    <div class="accordion-item">
+                      <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" 
+                                data-bs-toggle="collapse" 
+                                data-bs-target="#deal<%= index %>">
+                          <%= deal.title || 'Untitled Deal' %>
+                          <% if (deal.day) { %>
+                            <span class="badge bg-info ms-2">
+                              <%= deal.day.charAt(0).toUpperCase() + deal.day.slice(1) %>
+                            </span>
+                          <% } %>
+                        </button>
+                      </h2>
+                      <div id="deal<%= index %>" class="accordion-collapse collapse" 
+                           data-bs-parent="#dealsAccordion">
+                        <div class="accordion-body">
+                          <%= deal.description || 'No description provided.' %>
+                        </div>
+                      </div>
+                    </div>
+                  <% }) %>
+                </div>
+              <% } else { %>
+                <p class="text-muted mb-0">No deals or specials specified.</p>
+              <% } %>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="deleteModalLabel">Confirm Delete</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        Are you sure you want to delete <strong id="vendorName"></strong>?
+        This action cannot be undone.
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <form id="deleteForm" method="POST" action="">
+          <button type="submit" class="btn btn-danger">Delete</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Map Script (using Leaflet) -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" crossorigin="" />
+<script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js" crossorigin=""></script>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Setup delete modal
+    const deleteModal = document.getElementById('deleteModal');
+    deleteModal.addEventListener('show.bs.modal', event => {
+      const button = event.relatedTarget;
+      const vendorId = button.getAttribute('data-vendor-id');
+      const vendorName = button.getAttribute('data-vendor-name');
+      
+      document.getElementById('vendorName').textContent = vendorName;
+      document.getElementById('deleteForm').action = `/vendors/${vendorId}/delete`;
+    });
+    
+    // Initialize map if coordinates exist
+    const mapContainer = document.getElementById('locationMap');
+    if (mapContainer) {
+      const map = L.map('locationMap').setView([61.2181, -149.9003], 10); // Default to Anchorage
+      
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+      }).addTo(map);
+      
+      // Add marker if coordinates exist
+      <% if (vendor.location && vendor.location.coordinates && 
+            vendor.location.coordinates.latitude && 
+            vendor.location.coordinates.longitude) { %>
+        const lat = <%= vendor.location.coordinates.latitude %>;
+        const lng = <%= vendor.location.coordinates.longitude %>;
+        
+        L.marker([lat, lng]).addTo(map)
+          .bindPopup('<strong><%= vendor.name %></strong><br><%= vendor.location.address %>')
+          .openPopup();
+        
+        map.setView([lat, lng], 14);
+      <% } %>
+    }
+  });
+</script>
+
+<%- include('../partials/footer') %>

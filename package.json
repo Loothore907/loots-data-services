@@ -2,22 +2,23 @@
   "name": "loots-data-services",
   "version": "0.1.0",
   "description": "Data services for Loot's Ganja Guide",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
-    "process": "node scripts/process-vendors-regions.js --input=./data/input/raw_vendors_latest.json --output=./data/output/final_vendors_latest.json",
-    "process:all": "node scripts/process-vendors-regions.js --input=./data/input/raw_vendors_latest.json --output=./data/output/final_vendors_latest.json --no-priority-only",
+    "start": "node server.js",
+    "dev": "nodemon server.js",
+    "process": "node scripts/process-all.js",
     "process:priority": "node scripts/process-vendors-regions.js --input=./data/input/raw_vendors_latest.json --output=./data/output/priority_vendors_latest.json --priority-only --archive-non-priority --clean-addresses --validate-coordinates --no-sync",
-    "clear-vendors": "node clear-vendors.js",
+    "process:all": "node scripts/process-vendors-regions.js --input=./data/input/raw_vendors_latest.json --output=./data/output/final_vendors_latest.json --no-priority-only",
     "import": "node scripts/import-vendors.js",
-    "geocode": "node scripts/geocode-vendors.js --input=./data/processed/norm_vendors_latest.json --output=./data/processed/geo_vendors_latest.json",
+    "geocode": "node scripts/geocode-vendors.js",
     "geocode:clean": "node scripts/geocode-vendors.js --input=./data/processed/norm_vendors_latest.json --output=./data/processed/geo_vendors_latest.json --clean",
     "retry-geocode": "node scripts/geocode-vendors.js --input=./data/failures/geo_failed_latest.json --output=./data/processed/geo_retry_latest.json --provider=rapidapi --delay=1000",
     "validate": "node scripts/validate-coordinates.js --input=./data/processed/geo_vendors_latest.json",
     "finalize": "node scripts/finalize-vendors.js --input=./data/processed/geo_vendors_latest.json --retry=./data/processed/geo_retry_latest.json --output=./data/output/final_vendors_latest.json",
     "sync": "node scripts/sync-firebase.js",
+    "clear-vendors": "node clear-vendors.js",
     "test:failures": "node scripts/create-test-failures.js --input=./data/output/final_vendors_latest.json --output=./data/test/test_failures.json --number=10",
     "retry-failed": "node scripts/process-vendors-regions.js --input=./data/output/invalid-coordinates.json --output=./data/output/retry-failed-geocoding.json --mode=append --provider=rapidapi",
-    "start": "node server.js",
     "test": "jest"
   },
   "author": "",
@@ -29,6 +30,7 @@
     "dotenv": "^16.0.3",
     "ejs": "^3.1.10",
     "express": "^4.21.2",
+    "express-fileupload": "^1.4.3",
     "firebase": "^9.15.0",
     "firebase-admin": "^11.4.1",
     "joi": "^17.7.0",
@@ -37,7 +39,8 @@
     "winston": "^3.8.2"
   },
   "devDependencies": {
-    "jest": "^29.3.1"
+    "jest": "^29.3.1",
+    "nodemon": "^3.0.2"
   },
   "engines": {
     "node": ">=14.0.0"

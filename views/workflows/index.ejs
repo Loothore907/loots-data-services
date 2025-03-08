@@ -1,0 +1,138 @@
+<!-- views/workflows/index.ejs -->
+<%- include('../partials/header') %>
+
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Data Workflows</h1>
+  </div>
+
+  <div class="row g-4">
+    <% workflows.forEach(workflow => { %>
+      <div class="col-md-6 col-xl-4">
+        <div class="card h-100">
+          <div class="card-header d-flex align-items-center">
+            <h5 class="card-title mb-0 flex-grow-1"><%= workflow.name %></h5>
+            <% 
+              let statusBadge = '';
+              const isActive = false; // This would come from activeWorkflows
+              if (isActive) {
+                statusBadge = '<span class="badge bg-info text-white">Running</span>';
+              }
+            %>
+            <%- statusBadge %>
+          </div>
+          <div class="card-body">
+            <p class="card-text"><%= workflow.description %></p>
+            <div class="small text-muted mb-3">
+              <i class="bi bi-code-slash"></i> <%= workflow.script %>
+            </div>
+            
+            <% if (workflow.params.length > 0) { %>
+              <h6>Required Parameters:</h6>
+              <ul class="list-group list-group-flush small mb-3">
+                <% workflow.params.filter(p => p.required).forEach(param => { %>
+                  <li class="list-group-item px-0 py-1 border-0">
+                    <i class="bi bi-dot"></i> <%= param.label %>
+                  </li>
+                <% }) %>
+              </ul>
+            <% } %>
+          </div>
+          <div class="card-footer bg-transparent d-grid">
+            <a href="/workflows/<%= workflow.id %>" class="btn btn-primary">
+              <i class="bi bi-play-fill"></i> Execute Workflow
+            </a>
+          </div>
+        </div>
+      </div>
+    <% }) %>
+  </div>
+  
+  <!-- Workflow Process Diagram -->
+  <div class="card mt-5">
+    <div class="card-header">
+      <h5 class="card-title mb-0">Vendor Data Processing Workflow</h5>
+    </div>
+    <div class="card-body">
+      <div class="row">
+        <div class="col-md-10 mx-auto">
+          <div class="workflow-diagram">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+              <div class="workflow-step text-center">
+                <div class="workflow-icon rounded-circle bg-primary text-white p-3 mb-2">
+                  <i class="bi bi-file-earmark-arrow-up fs-3"></i>
+                </div>
+                <h6>1. Import & Normalize</h6>
+                <p class="small text-muted">Upload vendor data and normalize formats</p>
+              </div>
+              
+              <div class="workflow-arrow">
+                <i class="bi bi-arrow-right fs-1 text-muted"></i>
+              </div>
+              
+              <div class="workflow-step text-center">
+                <div class="workflow-icon rounded-circle bg-info text-white p-3 mb-2">
+                  <i class="bi bi-geo-alt fs-3"></i>
+                </div>
+                <h6>2. Geocode Addresses</h6>
+                <p class="small text-muted">Convert addresses to coordinates</p>
+              </div>
+              
+              <div class="workflow-arrow">
+                <i class="bi bi-arrow-right fs-1 text-muted"></i>
+              </div>
+              
+              <div class="workflow-step text-center">
+                <div class="workflow-icon rounded-circle bg-success text-white p-3 mb-2">
+                  <i class="bi bi-check-circle fs-3"></i>
+                </div>
+                <h6>3. Transform Schema</h6>
+                <p class="small text-muted">Final validation and formatting</p>
+              </div>
+              
+              <div class="workflow-arrow">
+                <i class="bi bi-arrow-right fs-1 text-muted"></i>
+              </div>
+              
+              <div class="workflow-step text-center">
+                <div class="workflow-icon rounded-circle bg-warning text-dark p-3 mb-2">
+                  <i class="bi bi-cloud-arrow-up fs-3"></i>
+                </div>
+                <h6>4. Sync to Firebase</h6>
+                <p class="small text-muted">Push to live database</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .workflow-icon {
+    width: 80px;
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+  }
+  
+  @media (max-width: 992px) {
+    .workflow-diagram .d-flex {
+      flex-direction: column;
+    }
+    
+    .workflow-arrow {
+      transform: rotate(90deg);
+      margin: 1rem 0;
+    }
+    
+    .workflow-step {
+      margin-bottom: 1rem;
+    }
+  }
+</style>
+
+<%- include('../partials/footer') %>

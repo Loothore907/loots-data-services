@@ -1,0 +1,480 @@
+<!-- views/vendors/edit.ejs -->
+<%- include('../partials/header') %>
+
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Edit Vendor: <%= vendor.name %></h1>
+    <div>
+      <a href="/vendors/<%= vendor.id %>" class="btn btn-outline-secondary me-2">Cancel</a>
+      <button form="vendorForm" type="submit" class="btn btn-success">
+        <i class="bi bi-save"></i> Save Changes
+      </button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-body">
+      <form id="vendorForm" method="POST" action="/vendors/<%= vendor.id %>">
+        <div class="row g-3">
+          <!-- Basic Info -->
+          <div class="col-12">
+            <h5 class="border-bottom pb-2 mb-3">Basic Information</h5>
+          </div>
+          
+          <div class="col-md-6">
+            <label for="name" class="form-label">Business Name*</label>
+            <input type="text" class="form-control <%= errors.name ? 'is-invalid' : '' %>" 
+                  id="name" name="name" value="<%= vendor.name %>" required>
+            <% if (errors.name) { %>
+              <div class="invalid-feedback"><%= errors.name %></div>
+            <% } %>
+          </div>
+          
+          <div class="col-md-6">
+            <label for="business_license" class="form-label">Business License</label>
+            <input type="text" class="form-control <%= errors.business_license ? 'is-invalid' : '' %>" 
+                  id="business_license" name="business_license" value="<%= vendor.business_license || '' %>">
+            <% if (errors.business_license) { %>
+              <div class="invalid-feedback"><%= errors.business_license %></div>
+            <% } %>
+          </div>
+          
+          <div class="col-md-6">
+            <label for="license_type" class="form-label">License Type</label>
+            <input type="text" class="form-control <%= errors.license_type ? 'is-invalid' : '' %>" 
+                  id="license_type" name="license_type" value="<%= vendor.license_type || '' %>">
+            <% if (errors.license_type) { %>
+              <div class="invalid-feedback"><%= errors.license_type %></div>
+            <% } %>
+          </div>
+          
+          <div class="col-md-6">
+            <label for="status" class="form-label">Status</label>
+            <select class="form-select <%= errors.status ? 'is-invalid' : '' %>" 
+                   id="status" name="status">
+              <option value="Active-Operating" <%= vendor.status === 'Active-Operating' ? 'selected' : '' %>>Active-Operating</option>
+              <option value="Active-Pending Inspection" <%= vendor.status === 'Active-Pending Inspection' ? 'selected' : '' %>>Active-Pending Inspection</option>
+              <option value="Expired" <%= vendor.status === 'Expired' ? 'selected' : '' %>>Expired</option>
+              <option value="Surrendered" <%= vendor.status === 'Surrendered' ? 'selected' : '' %>>Surrendered</option>
+              <option value="Revoked" <%= vendor.status === 'Revoked' ? 'selected' : '' %>>Revoked</option>
+            </select>
+            <% if (errors.status) { %>
+              <div class="invalid-feedback"><%= errors.status %></div>
+            <% } %>
+          </div>
+          
+          <div class="col-12 form-check">
+            <input class="form-check-input" type="checkbox" id="isPartner" name="isPartner" 
+                  <%= vendor.isPartner ? 'checked' : '' %>>
+            <label class="form-check-label" for="isPartner">
+              Featured Partner (highlighted in app)
+            </label>
+          </div>
+          
+          <!-- Location Info -->
+          <div class="col-12 mt-4">
+            <h5 class="border-bottom pb-2 mb-3">Location</h5>
+          </div>
+          
+          <div class="col-12">
+            <label for="address" class="form-label">Address*</label>
+            <input type="text" class="form-control <%= errors.address ? 'is-invalid' : '' %>" 
+                  id="address" name="address" 
+                  value="<%= vendor.location ? vendor.location.address : '' %>" 
+                  required>
+            <% if (errors.address) { %>
+              <div class="invalid-feedback"><%= errors.address %></div>
+            <% } %>
+          </div>
+          
+          <div class="col-md-6">
+            <label for="latitude" class="form-label">Latitude</label>
+            <input type="number" step="any" class="form-control <%= errors.latitude ? 'is-invalid' : '' %>" 
+                  id="latitude" name="latitude" 
+                  value="<%= vendor.location && vendor.location.coordinates ? vendor.location.coordinates.latitude : '' %>">
+            <% if (errors.latitude) { %>
+              <div class="invalid-feedback"><%= errors.latitude %></div>
+            <% } %>
+          </div>
+          
+          <div class="col-md-6">
+            <label for="longitude" class="form-label">Longitude</label>
+            <input type="number" step="any" class="form-control <%= errors.longitude ? 'is-invalid' : '' %>" 
+                  id="longitude" name="longitude" 
+                  value="<%= vendor.location && vendor.location.coordinates ? vendor.location.coordinates.longitude : '' %>">
+            <% if (errors.longitude) { %>
+              <div class="invalid-feedback"><%= errors.longitude %></div>
+            <% } %>
+          </div>
+          
+          <div class="col-12">
+            <div id="locationMap" style="height: 300px; width: 100%;" class="border rounded mt-2"></div>
+          </div>
+          
+          <!-- Contact Info -->
+          <div class="col-12 mt-4">
+            <h5 class="border-bottom pb-2 mb-3">Contact Information</h5>
+          </div>
+          
+          <div class="col-md-6">
+            <label for="phone" class="form-label">Phone</label>
+            <input type="tel" class="form-control <%= errors.phone ? 'is-invalid' : '' %>" 
+                  id="phone" name="phone" 
+                  value="<%= vendor.contact ? vendor.contact.phone : '' %>">
+            <% if (errors.phone) { %>
+              <div class="invalid-feedback"><%= errors.phone %></div>
+            <% } %>
+          </div>
+          
+          <div class="col-md-6">
+            <label for="email" class="form-label">Email</label>
+            <input type="email" class="form-control <%= errors.email ? 'is-invalid' : '' %>" 
+                  id="email" name="email" 
+                  value="<%= vendor.contact ? vendor.contact.email : '' %>">
+            <% if (errors.email) { %>
+              <div class="invalid-feedback"><%= errors.email %></div>
+            <% } %>
+          </div>
+          
+          <div class="col-md-6">
+            <label for="instagram" class="form-label">Instagram</label>
+            <div class="input-group">
+              <span class="input-group-text">@</span>
+              <input type="text" class="form-control <%= errors.instagram ? 'is-invalid' : '' %>" 
+                    id="instagram" name="instagram" 
+                    value="<%= vendor.contact && vendor.contact.social ? vendor.contact.social.instagram : '' %>">
+              <% if (errors.instagram) { %>
+                <div class="invalid-feedback"><%= errors.instagram %></div>
+              <% } %>
+            </div>
+          </div>
+          
+          <div class="col-md-6">
+            <label for="facebook" class="form-label">Facebook</label>
+            <input type="text" class="form-control <%= errors.facebook ? 'is-invalid' : '' %>" 
+                  id="facebook" name="facebook" 
+                  value="<%= vendor.contact && vendor.contact.social ? vendor.contact.social.facebook : '' %>">
+            <% if (errors.facebook) { %>
+              <div class="invalid-feedback"><%= errors.facebook %></div>
+            <% } %>
+          </div>
+          
+          <!-- Hours -->
+          <div class="col-12 mt-4">
+            <h5 class="border-bottom pb-2 mb-3">Hours of Operation</h5>
+            <div id="hoursEditor" class="mb-3">
+              <div class="row mb-2">
+                <div class="col-md-3 fw-bold">Day</div>
+                <div class="col-md-4 fw-bold">Open</div>
+                <div class="col-md-4 fw-bold">Close</div>
+                <div class="col-md-1"></div>
+              </div>
+              
+              <div id="hoursContainer">
+                <!-- Hours will be added dynamically -->
+              </div>
+              
+              <button type="button" id="addHoursBtn" class="btn btn-sm btn-outline-primary mt-2">
+                <i class="bi bi-plus-circle"></i> Add Hours
+              </button>
+            </div>
+            
+            <!-- Hidden field to store JSON representation of hours -->
+            <input type="hidden" id="hours" name="hours" 
+                   value="<%= JSON.stringify(vendor.hours || {}) %>">
+          </div>
+          
+          <!-- Deals -->
+          <div class="col-12 mt-4">
+            <h5 class="border-bottom pb-2 mb-3">Deals & Specials</h5>
+            <div id="dealsEditor" class="mb-3">
+              <div id="dealsContainer">
+                <!-- Deals will be added dynamically -->
+              </div>
+              
+              <button type="button" id="addDealBtn" class="btn btn-sm btn-outline-primary mt-2">
+                <i class="bi bi-plus-circle"></i> Add Deal
+              </button>
+            </div>
+            
+            <!-- Hidden field to store JSON representation of deals -->
+            <input type="hidden" id="deals" name="deals" 
+                   value="<%= JSON.stringify(vendor.deals || []) %>">
+          </div>
+          
+          <div class="col-12 mt-4">
+            <button type="submit" class="btn btn-primary">Save Changes</button>
+            <a href="/vendors/<%= vendor.id %>" class="btn btn-outline-secondary">Cancel</a>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Map Script (using Leaflet) -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" crossorigin="" />
+<script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js" crossorigin=""></script>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Initialize map
+    const map = L.map('locationMap').setView([61.2181, -149.9003], 10); // Default to Anchorage
+    
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+    
+    // Set marker if coordinates exist
+    let marker;
+    const lat = parseFloat(document.getElementById('latitude').value);
+    const lng = parseFloat(document.getElementById('longitude').value);
+    
+    if (!isNaN(lat) && !isNaN(lng)) {
+      marker = L.marker([lat, lng]).addTo(map);
+      map.setView([lat, lng], 14);
+    }
+    
+    // Update marker on map click
+    map.on('click', function(e) {
+      const { lat, lng } = e.latlng;
+      
+      // Update form fields
+      document.getElementById('latitude').value = lat.toFixed(6);
+      document.getElementById('longitude').value = lng.toFixed(6);
+      
+      // Update or create marker
+      if (marker) {
+        marker.setLatLng([lat, lng]);
+      } else {
+        marker = L.marker([lat, lng]).addTo(map);
+      }
+    });
+    
+    // Geocode address button
+    // Add geocode button to form
+    const addressField = document.getElementById('address');
+    const geocodeBtn = document.createElement('button');
+    geocodeBtn.className = 'btn btn-outline-secondary';
+    geocodeBtn.type = 'button';
+    geocodeBtn.innerHTML = '<i class="bi bi-geo-alt"></i> Geocode';
+    geocodeBtn.style.marginTop = '8px';
+    addressField.parentNode.appendChild(geocodeBtn);
+    
+    geocodeBtn.addEventListener('click', async function() {
+      const address = addressField.value;
+      if (!address) return;
+      
+      try {
+        geocodeBtn.disabled = true;
+        geocodeBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Geocoding...';
+        
+        // Use OpenStreetMap Nominatim API for geocoding
+        const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`);
+        const data = await response.json();
+        
+        if (data && data.length > 0) {
+          const { lat, lon } = data[0];
+          
+          // Update form fields
+          document.getElementById('latitude').value = parseFloat(lat);
+          document.getElementById('longitude').value = parseFloat(lon);
+          
+          // Update or create marker
+          if (marker) {
+            marker.setLatLng([lat, lon]);
+          } else {
+            marker = L.marker([lat, lon]).addTo(map);
+          }
+          
+          // Center map
+          map.setView([lat, lon], 14);
+        } else {
+          alert('Could not geocode address. Please try a different address or enter coordinates manually.');
+        }
+      } catch (error) {
+        console.error('Geocoding error:', error);
+        alert('Error geocoding address: ' + error.message);
+      } finally {
+        geocodeBtn.disabled = false;
+        geocodeBtn.innerHTML = '<i class="bi bi-geo-alt"></i> Geocode';
+      }
+    });
+    
+    // Handle hours editor
+    const hoursContainer = document.getElementById('hoursContainer');
+    const addHoursBtn = document.getElementById('addHoursBtn');
+    const hoursInput = document.getElementById('hours');
+    
+    function updateHoursJson() {
+      const hours = {};
+      
+      document.querySelectorAll('.hours-row').forEach(row => {
+        const day = row.querySelector('.day-select').value;
+        const open = row.querySelector('.open-time').value;
+        const close = row.querySelector('.close-time').value;
+        
+        if (day && (open || close)) {
+          hours[day] = { open, close };
+        }
+      });
+      
+      hoursInput.value = JSON.stringify(hours);
+    }
+    
+    function createHoursRow(day = '', open = '', close = '') {
+      const row = document.createElement('div');
+      row.className = 'row mb-2 hours-row';
+      
+      row.innerHTML = `
+        <div class="col-md-3">
+          <select class="form-select day-select">
+            <option value="">Select Day</option>
+            <option value="monday" ${day === 'monday' ? 'selected' : ''}>Monday</option>
+            <option value="tuesday" ${day === 'tuesday' ? 'selected' : ''}>Tuesday</option>
+            <option value="wednesday" ${day === 'wednesday' ? 'selected' : ''}>Wednesday</option>
+            <option value="thursday" ${day === 'thursday' ? 'selected' : ''}>Thursday</option>
+            <option value="friday" ${day === 'friday' ? 'selected' : ''}>Friday</option>
+            <option value="saturday" ${day === 'saturday' ? 'selected' : ''}>Saturday</option>
+            <option value="sunday" ${day === 'sunday' ? 'selected' : ''}>Sunday</option>
+          </select>
+        </div>
+        <div class="col-md-4">
+          <input type="time" class="form-control open-time" value="${open}">
+        </div>
+        <div class="col-md-4">
+          <input type="time" class="form-control close-time" value="${close}">
+        </div>
+        <div class="col-md-1">
+          <button type="button" class="btn btn-outline-danger btn-sm remove-hours">
+            <i class="bi bi-trash"></i>
+          </button>
+        </div>
+      `;
+      
+      // Add event listeners
+      row.querySelector('.day-select').addEventListener('change', updateHoursJson);
+      row.querySelector('.open-time').addEventListener('change', updateHoursJson);
+      row.querySelector('.close-time').addEventListener('change', updateHoursJson);
+      row.querySelector('.remove-hours').addEventListener('click', function() {
+        row.remove();
+        updateHoursJson();
+      });
+      
+      return row;
+    }
+    
+    // Add existing hours
+    try {
+      const hours = JSON.parse(hoursInput.value);
+      Object.entries(hours).forEach(([day, times]) => {
+        hoursContainer.appendChild(createHoursRow(day, times.open, times.close));
+      });
+    } catch (e) {
+      console.error('Error parsing hours:', e);
+    }
+    
+    // Add button handler
+    addHoursBtn.addEventListener('click', function() {
+      hoursContainer.appendChild(createHoursRow());
+    });
+    
+    // If no hours exist, add an empty row
+    if (hoursContainer.children.length === 0) {
+      hoursContainer.appendChild(createHoursRow());
+    }
+    
+    // Handle deals editor
+    const dealsContainer = document.getElementById('dealsContainer');
+    const addDealBtn = document.getElementById('addDealBtn');
+    const dealsInput = document.getElementById('deals');
+    
+    function updateDealsJson() {
+      const deals = [];
+      
+      document.querySelectorAll('.deal-row').forEach(row => {
+        const title = row.querySelector('.deal-title').value;
+        const description = row.querySelector('.deal-description').value;
+        const day = row.querySelector('.deal-day').value;
+        
+        if (title || description) {
+          deals.push({ title, description, day });
+        }
+      });
+      
+      dealsInput.value = JSON.stringify(deals);
+    }
+    
+    function createDealRow(deal = { title: '', description: '', day: '' }) {
+      const row = document.createElement('div');
+      row.className = 'card mb-3 deal-row';
+      
+      row.innerHTML = `
+        <div class="card-body">
+          <div class="row g-2">
+            <div class="col-md-8">
+              <label class="form-label">Title</label>
+              <input type="text" class="form-control deal-title" value="${deal.title || ''}">
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Day</label>
+              <select class="form-select deal-day">
+                <option value="">Any Day</option>
+                <option value="monday" ${deal.day === 'monday' ? 'selected' : ''}>Monday</option>
+                <option value="tuesday" ${deal.day === 'tuesday' ? 'selected' : ''}>Tuesday</option>
+                <option value="wednesday" ${deal.day === 'wednesday' ? 'selected' : ''}>Wednesday</option>
+                <option value="thursday" ${deal.day === 'thursday' ? 'selected' : ''}>Thursday</option>
+                <option value="friday" ${deal.day === 'friday' ? 'selected' : ''}>Friday</option>
+                <option value="saturday" ${deal.day === 'saturday' ? 'selected' : ''}>Saturday</option>
+                <option value="sunday" ${deal.day === 'sunday' ? 'selected' : ''}>Sunday</option>
+              </select>
+            </div>
+            <div class="col-md-1">
+              <label class="form-label">&nbsp;</label>
+              <button type="button" class="btn btn-outline-danger btn-sm remove-deal w-100">
+                <i class="bi bi-trash"></i>
+              </button>
+            </div>
+            <div class="col-12 mt-2">
+              <label class="form-label">Description</label>
+              <textarea class="form-control deal-description" rows="2">${deal.description || ''}</textarea>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      // Add event listeners
+      row.querySelector('.deal-title').addEventListener('input', updateDealsJson);
+      row.querySelector('.deal-description').addEventListener('input', updateDealsJson);
+      row.querySelector('.deal-day').addEventListener('change', updateDealsJson);
+      row.querySelector('.remove-deal').addEventListener('click', function() {
+        row.remove();
+        updateDealsJson();
+      });
+      
+      return row;
+    }
+    
+    // Add existing deals
+    try {
+      const deals = JSON.parse(dealsInput.value);
+      deals.forEach(deal => {
+        dealsContainer.appendChild(createDealRow(deal));
+      });
+    } catch (e) {
+      console.error('Error parsing deals:', e);
+    }
+    
+    // Add button handler
+    addDealBtn.addEventListener('click', function() {
+      dealsContainer.appendChild(createDealRow());
+    });
+    
+    // If no deals exist, add an empty one
+    if (dealsContainer.children.length === 0) {
+      dealsContainer.appendChild(createDealRow());
+    }
+  });
+</script>
+
+<%- include('../partials/footer') %>
