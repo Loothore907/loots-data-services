@@ -1,11 +1,18 @@
-// routes/vendors.js
+// Updated routes/vendors.js with region integration
 const express = require('express');
 const router = express.Router();
 const { getAdminDb } = require('../config/firebase');
 const { normalizeVendor, validateVendor } = require('../models/vendor');
+const { extractZipCodeFromAddress } = require('../models/region');
+const { 
+  isVendorActive, 
+  getVendorStatusCategory, 
+  getStatusBadgeClass,
+  filterVendorsByStatus
+} = require('../utils/vendor-status');
 const logger = require('../utils/logger');
 
-// List vendors with pagination and filtering
+// List vendors with pagination, filtering, and region integration
 router.get('/', async (req, res) => {
   try {
     const db = getAdminDb();
@@ -13,7 +20,30 @@ router.get('/', async (req, res) => {
     const limit = parseInt(req.query.limit) || 20;
     const searchTerm = req.query.search || '';
     const status = req.query.status || '';
-    const region = req.query.region || '';
+    const regionName = req.query.region || '';
+    const isActiveRegion = req.query.isActiveRegion === 'true';
+    const statusCategory = req.query.statusCategory || 'all'; // 'active', 'inactive', 'revoked', 'all'
+    const activeBusinessOnly = req.query.activeBusinessOnly === 'true';
+    
+    // Fetch all regions first
+    const regionsSnapshot = await db.collection('regions').get();
+    const regions = [];
+    regionsSnapshot.forEach(doc => {
+      regions.push({
+        id: doc.id,
+        ...doc.data()
+      });
+    });
+    
+    // Find active and priority regions for filtering
+    const activeRegions = regions.filter(r => r.isActive);
+    const priorityRegions = regions.filter(r => r.isPriority);
+    
+    // Find specific region if requested
+    let selectedRegion = null;
+    if (regionName) {
+      selectedRegion = regions.find(r => r.name === regionName);
+    }
     
     // Build query
     let query = db.collection('vendors');
@@ -34,7 +64,7 @@ router.get('/', async (req, res) => {
     
     // Execute query
     const snapshot = await query.get();
-    const vendors = [];
+    let vendors = [];
     
     snapshot.forEach(doc => {
       const vendor = {
@@ -47,13 +77,53 @@ router.get('/', async (req, res) => {
         return;
       }
       
-      // Apply region filter client-side
-      if (region && (!vendor.location || !vendor.location.address || !vendor.location.address.includes(region))) {
-        return;
+      // Determine which region(s) the vendor belongs to
+      if (vendor.location && vendor.location.address) {
+        const zipCode = extractZipCodeFromAddress(vendor.location.address);
+        
+        if (zipCode) {
+          // Check if vendor is in selected region
+          if (selectedRegion && !selectedRegion.zipCodes.includes(zipCode)) {
+            return; // Skip this vendor if not in the selected region
+          }
+          
+          // Check if vendor should be in active region only
+          if (isActiveRegion && !activeRegions.some(r => r.zipCodes.includes(zipCode))) {
+            return; // Skip this vendor if not in an active region
+          }
+          
+          // Determine which region the vendor belongs to
+          vendor.region = regions.find(r => r.zipCodes.includes(zipCode))?.name || 'Unknown';
+          vendor.isInActiveRegion = activeRegions.some(r => r.zipCodes.includes(zipCode));
+          vendor.isInPriorityRegion = priorityRegions.some(r => r.zipCodes.includes(zipCode));
+        } else {
+          vendor.region = 'Unknown';
+          vendor.isInActiveRegion = false;
+          vendor.isInPriorityRegion = false;
+        }
+      } else {
+        vendor.region = 'Unknown';
+        vendor.isInActiveRegion = false;
+        vendor.isInPriorityRegion = false;
       }
+      
+      // Add status category and badge class
+      vendor.statusCategory = getVendorStatusCategory(vendor);
+      vendor.statusBadgeClass = getStatusBadgeClass(vendor);
+      vendor.isActiveVendor = isVendorActive(vendor);
       
       vendors.push(vendor);
     });
+    
+    // Filter by status category if requested
+    if (statusCategory !== 'all') {
+      vendors = filterVendorsByStatus(vendors, statusCategory);
+    }
+    
+    // Filter to show only active businesses if requested
+    if (activeBusinessOnly) {
+      vendors = vendors.filter(v => isVendorActive(v));
+    }
     
     // Render the vendor list page
     res.render('vendors/index', {
@@ -67,8 +137,12 @@ router.get('/', async (req, res) => {
       filters: {
         search: searchTerm,
         status,
-        region
-      }
+        region: regionName,
+        isActiveRegion,
+        statusCategory,
+        activeBusinessOnly
+      },
+      regions: regions // Pass regions for the filter dropdown
     });
   } catch (error) {
     logger.error('Error fetching vendors:', error);
@@ -77,11 +151,31 @@ router.get('/', async (req, res) => {
 });
 
 // Show vendor creation form
-router.get('/new', (req, res) => {
-  res.render('vendors/new', { vendor: {}, errors: {} });
+router.get('/new', async (req, res) => {
+  try {
+    // Fetch regions for the dropdown
+    const db = getAdminDb();
+    const regionsSnapshot = await db.collection('regions').get();
+    const regions = [];
+    regionsSnapshot.forEach(doc => {
+      regions.push({
+        id: doc.id,
+        ...doc.data()
+      });
+    });
+    
+    res.render('vendors/new', { 
+      vendor: {},
+      regions: regions, 
+      errors: {} 
+    });
+  } catch (error) {
+    logger.error('Error loading vendor creation form:', error);
+    res.status(500).render('error', { error: 'Failed to load vendor creation form' });
+  }
 });
 
-// Show single vendor
+// Show single vendor with region information
 router.get('/:id', async (req, res) => {
   try {
     const db = getAdminDb();
@@ -96,7 +190,32 @@ router.get('/:id', async (req, res) => {
       ...vendorDoc.data()
     };
     
-    res.render('vendors/show', { vendor });
+    // Get regions to determine which region the vendor belongs to
+    const regionsSnapshot = await db.collection('regions').get();
+    const regions = [];
+    regionsSnapshot.forEach(doc => {
+      regions.push({
+        id: doc.id,
+        ...doc.data()
+      });
+    });
+    
+    // Determine which region the vendor belongs to
+    if (vendor.location && vendor.location.address) {
+      const zipCode = extractZipCodeFromAddress(vendor.location.address);
+      
+      if (zipCode) {
+        const vendorRegion = regions.find(r => r.zipCodes.includes(zipCode));
+        if (vendorRegion) {
+          vendor.region = vendorRegion.name;
+          vendor.regionData = vendorRegion;
+          vendor.isInActiveRegion = vendorRegion.isActive;
+          vendor.isInPriorityRegion = vendorRegion.isPriority;
+        }
+      }
+    }
+    
+    res.render('vendors/show', { vendor, regions });
   } catch (error) {
     logger.error('Error fetching vendor:', error);
     res.status(500).render('error', { error: 'Failed to fetch vendor details' });
@@ -118,62 +237,59 @@ router.get('/:id/edit', async (req, res) => {
       ...vendorDoc.data()
     };
     
-    res.render('vendors/edit', { vendor, errors: {} });
+    // Fetch regions for the dropdown
+    const regionsSnapshot = await db.collection('regions').get();
+    const regions = [];
+    regionsSnapshot.forEach(doc => {
+      regions.push({
+        id: doc.id,
+        ...doc.data()
+      });
+    });
+    
+    res.render('vendors/edit', { vendor, regions, errors: {} });
   } catch (error) {
-    logger.error('Error fetching vendor for editing:', error);
-    res.status(500).render('error', { error: 'Failed to load vendor for editing' });
+    logger.error('Error fetching vendor for edit:', error);
+    res.status(500).render('error', { error: 'Failed to fetch vendor for editing' });
   }
 });
 
 // Create vendor
 router.post('/', async (req, res) => {
   try {
-    // Create vendor object from form data
-    const vendorData = {
-      name: req.body.name,
-      business_license: req.body.business_license,
-      license_type: req.body.license_type,
-      status: req.body.status,
-      location: {
-        address: req.body.address,
-        coordinates: {
-          latitude: parseFloat(req.body.latitude) || null,
-          longitude: parseFloat(req.body.longitude) || null
-        }
-      },
-      contact: {
-        phone: req.body.phone || null,
-        email: req.body.email || null,
-        social: {
-          instagram: req.body.instagram || null,
-          facebook: req.body.facebook || null
-        }
-      },
-      hours: JSON.parse(req.body.hours || '{}'),
-      deals: JSON.parse(req.body.deals || '[]'),
-      isPartner: req.body.isPartner === 'on',
-      lastUpdated: new Date().toISOString()
-    };
-    
-    // Normalize and validate
-    const normalized = normalizeVendor(vendorData);
-    const { error } = validateVendor(normalized);
+    const vendorData = normalizeVendor(req.body);
+    const { error } = validateVendor(vendorData);
     
     if (error) {
-      return res.render('vendors/new', { 
-        vendor: vendorData, 
-        errors: error.details.reduce((acc, detail) => {
-          acc[detail.path[0]] = detail.message;
+      // Fetch regions for the dropdown
+      const db = getAdminDb();
+      const regionsSnapshot = await db.collection('regions').get();
+      const regions = [];
+      regionsSnapshot.forEach(doc => {
+        regions.push({
+          id: doc.id,
+          ...doc.data()
+        });
+      });
+      
+      return res.render('vendors/new', {
+        vendor: req.body,
+        regions: regions,
+        errors: error.details.reduce((acc, curr) => {
+          acc[curr.path[0]] = curr.message;
           return acc;
         }, {})
       });
     }
     
-    // Save to Firestore
     const db = getAdminDb();
-    const docRef = await db.collection('vendors').add(normalized);
+    const docRef = await db.collection('vendors').add({
+      ...vendorData,
+      createdAt: new Date().toISOString(),
+      lastUpdated: new Date().toISOString()
+    });
     
-    logger.info(`Created new vendor: ${docRef.id} (${normalized.name})`);
+    logger.info(`Created new vendor: ${docRef.id}`);
     res.redirect(`/vendors/${docRef.id}`);
   } catch (error) {
     logger.error('Error creating vendor:', error);
@@ -184,53 +300,38 @@ router.post('/', async (req, res) => {
 // Update vendor
 router.post('/:id', async (req, res) => {
   try {
-    // Create vendor object from form data
-    const vendorData = {
-      id: req.params.id,
-      name: req.body.name,
-      business_license: req.body.business_license,
-      license_type: req.body.license_type,
-      status: req.body.status,
-      location: {
-        address: req.body.address,
-        coordinates: {
-          latitude: parseFloat(req.body.latitude) || null,
-          longitude: parseFloat(req.body.longitude) || null
-        }
-      },
-      contact: {
-        phone: req.body.phone || null,
-        email: req.body.email || null,
-        social: {
-          instagram: req.body.instagram || null,
-          facebook: req.body.facebook || null
-        }
-      },
-      hours: JSON.parse(req.body.hours || '{}'),
-      deals: JSON.parse(req.body.deals || '[]'),
-      isPartner: req.body.isPartner === 'on',
-      lastUpdated: new Date().toISOString()
-    };
-    
-    // Normalize and validate
-    const normalized = normalizeVendor(vendorData);
-    const { error } = validateVendor(normalized);
+    const vendorData = normalizeVendor(req.body);
+    const { error } = validateVendor(vendorData);
     
     if (error) {
-      return res.render('vendors/edit', { 
-        vendor: vendorData, 
-        errors: error.details.reduce((acc, detail) => {
-          acc[detail.path[0]] = detail.message;
+      // Fetch regions for the dropdown
+      const db = getAdminDb();
+      const regionsSnapshot = await db.collection('regions').get();
+      const regions = [];
+      regionsSnapshot.forEach(doc => {
+        regions.push({
+          id: doc.id,
+          ...doc.data()
+        });
+      });
+      
+      return res.render('vendors/edit', {
+        vendor: { ...req.body, id: req.params.id },
+        regions: regions,
+        errors: error.details.reduce((acc, curr) => {
+          acc[curr.path[0]] = curr.message;
           return acc;
         }, {})
       });
     }
     
-    // Save to Firestore
     const db = getAdminDb();
-    await db.collection('vendors').doc(req.params.id).set(normalized, { merge: true });
+    await db.collection('vendors').doc(req.params.id).update({
+      ...vendorData,
+      lastUpdated: new Date().toISOString()
+    });
     
-    logger.info(`Updated vendor: ${req.params.id} (${normalized.name})`);
+    logger.info(`Updated vendor: ${req.params.id}`);
     res.redirect(`/vendors/${req.params.id}`);
   } catch (error) {
     logger.error('Error updating vendor:', error);

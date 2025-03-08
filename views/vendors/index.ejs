@@ -13,34 +13,79 @@
   <div class="card mb-4">
     <div class="card-body">
       <form method="GET" action="/vendors" class="row g-3">
-        <div class="col-md-4">
+        <div class="col-md-3">
           <label for="search" class="form-label">Search</label>
           <input type="text" id="search" name="search" class="form-control" value="<%= filters.search %>">
         </div>
-        <div class="col-md-3">
-          <label for="status" class="form-label">Status</label>
+        
+        <div class="col-md-2">
+          <label for="statusCategory" class="form-label">Status Category</label>
+          <select id="statusCategory" name="statusCategory" class="form-select">
+            <option value="all" <%= filters.statusCategory === 'all' ? 'selected' : '' %>>All Categories</option>
+            <option value="active" <%= filters.statusCategory === 'active' ? 'selected' : '' %>>Active</option>
+            <option value="inactive" <%= filters.statusCategory === 'inactive' ? 'selected' : '' %>>Inactive</option>
+            <option value="revoked" <%= filters.statusCategory === 'revoked' ? 'selected' : '' %>>Revoked</option>
+          </select>
+        </div>
+        
+        <div class="col-md-2">
+          <label for="status" class="form-label">Specific Status</label>
           <select id="status" name="status" class="form-select">
-            <option value="">All Statuses</option>
+            <option value="">Any Status</option>
             <option value="Active-Operating" <%= filters.status === 'Active-Operating' ? 'selected' : '' %>>Active-Operating</option>
             <option value="Active-Pending Inspection" <%= filters.status === 'Active-Pending Inspection' ? 'selected' : '' %>>Active-Pending Inspection</option>
+            <option value="Delegated" <%= filters.status === 'Delegated' ? 'selected' : '' %>>Delegated</option>
+            <option value="Returned" <%= filters.status === 'Returned' ? 'selected' : '' %>>Returned</option>
             <option value="Expired" <%= filters.status === 'Expired' ? 'selected' : '' %>>Expired</option>
             <option value="Surrendered" <%= filters.status === 'Surrendered' ? 'selected' : '' %>>Surrendered</option>
+            <option value="Complete" <%= filters.status === 'Complete' ? 'selected' : '' %>>Complete</option>
+            <option value="Pending" <%= filters.status === 'Pending' ? 'selected' : '' %>>Pending</option>
             <option value="Revoked" <%= filters.status === 'Revoked' ? 'selected' : '' %>>Revoked</option>
           </select>
         </div>
+        
         <div class="col-md-3">
           <label for="region" class="form-label">Region</label>
           <select id="region" name="region" class="form-select">
             <option value="">All Regions</option>
-            <option value="Anchorage" <%= filters.region === 'Anchorage' ? 'selected' : '' %>>Anchorage</option>
-            <option value="MatSu" <%= filters.region === 'MatSu' ? 'selected' : '' %>>MatSu Valley</option>
-            <option value="Fairbanks" <%= filters.region === 'Fairbanks' ? 'selected' : '' %>>Fairbanks</option>
-            <option value="Kenai" <%= filters.region === 'Kenai' ? 'selected' : '' %>>Kenai Peninsula</option>
-            <option value="Juneau" <%= filters.region === 'Juneau' ? 'selected' : '' %>>Juneau</option>
+            <% if (regions && regions.length > 0) { %>
+              <% regions.forEach(region => { %>
+                <option value="<%= region.name %>" <%= filters.region === region.name ? 'selected' : '' %>>
+                  <%= region.name %> 
+                  <% if (region.isActive) { %>(Active)<% } %>
+                </option>
+              <% }); %>
+            <% } %>
           </select>
         </div>
+        
         <div class="col-md-2 d-flex align-items-end">
           <button type="submit" class="btn btn-primary w-100">Filter</button>
+        </div>
+        
+        <div class="col-md-4">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="isActiveRegion" name="isActiveRegion" value="true" <%= filters.isActiveRegion ? 'checked' : '' %>>
+            <label class="form-check-label" for="isActiveRegion">
+              <span class="badge bg-success">Active Regions Only</span>
+            </label>
+          </div>
+        </div>
+        
+        <div class="col-md-4">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="activeBusinessOnly" name="activeBusinessOnly" value="true" <%= filters.activeBusinessOnly ? 'checked' : '' %>>
+            <label class="form-check-label" for="activeBusinessOnly">
+              <span class="badge bg-success">Active Businesses Only</span>
+            </label>
+            <div class="form-text small">Only vendors with operating status (Active, Operating, Delegated, Returned)</div>
+          </div>
+        </div>
+        
+        <div class="col-md-4 d-flex align-items-end">
+          <a href="/vendors" class="btn btn-outline-secondary">
+            <i class="bi bi-x-circle"></i> Clear Filters
+          </a>
         </div>
       </form>
     </div>
@@ -61,6 +106,7 @@
                 <th>ID</th>
                 <th>Name</th>
                 <th>Status</th>
+                <th>Region</th>
                 <th>Address</th>
                 <th>Has Coordinates</th>
                 <th>Actions</th>
@@ -72,16 +118,23 @@
                   <td><%= vendor.id %></td>
                   <td><%= vendor.name %></td>
                   <td>
-                    <% if (vendor.status === 'Active-Operating') { %>
-                      <span class="badge bg-success">Active</span>
-                    <% } else if (vendor.status === 'Active-Pending Inspection') { %>
-                      <span class="badge bg-warning">Pending</span>
-                    <% } else if (vendor.status === 'Expired') { %>
-                      <span class="badge bg-secondary">Expired</span>
-                    <% } else if (vendor.status === 'Revoked') { %>
-                      <span class="badge bg-danger">Revoked</span>
+                    <span class="badge <%= vendor.statusBadgeClass %>">
+                      <%= vendor.status %>
+                    </span>
+                    <% if (vendor.isActiveVendor) { %>
+                      <i class="bi bi-shop text-success ms-1" title="Active Business"></i>
+                    <% } %>
+                  </td>
+                  <td>
+                    <% if (vendor.region && vendor.region !== 'Unknown') { %>
+                      <a href="/regions" class="text-decoration-none">
+                        <%= vendor.region %>
+                        <% if (vendor.isInActiveRegion) { %>
+                          <span class="badge bg-success ms-1">Active</span>
+                        <% } %>
+                      </a>
                     <% } else { %>
-                      <span class="badge bg-info"><%= vendor.status %></span>
+                      <span class="text-muted">Unknown</span>
                     <% } %>
                   </td>
                   <td><%= vendor.location ? vendor.location.address : 'None' %></td>
@@ -121,7 +174,7 @@
             <ul class="pagination justify-content-center mt-4">
               <% if (pagination.current > 1) { %>
                 <li class="page-item">
-                  <a class="page-link" href="/vendors?page=<%= pagination.current - 1 %>&search=<%= filters.search %>&status=<%= filters.status %>&region=<%= filters.region %>" aria-label="Previous">
+                  <a class="page-link" href="/vendors?page=<%= pagination.current - 1 %>&search=<%= filters.search %>&status=<%= filters.status %>&region=<%= filters.region %>&isActiveRegion=<%= filters.isActiveRegion ? 'true' : '' %>&statusCategory=<%= filters.statusCategory %>&activeBusinessOnly=<%= filters.activeBusinessOnly ? 'true' : '' %>" aria-label="Previous">
                     <span aria-hidden="true">&laquo;</span>
                   </a>
                 </li>
@@ -135,13 +188,13 @@
               
               <% for (let i = 1; i <= pagination.total; i++) { %>
                 <li class="page-item <%= pagination.current === i ? 'active' : '' %>">
-                  <a class="page-link" href="/vendors?page=<%= i %>&search=<%= filters.search %>&status=<%= filters.status %>&region=<%= filters.region %>"><%= i %></a>
+                  <a class="page-link" href="/vendors?page=<%= i %>&search=<%= filters.search %>&status=<%= filters.status %>&region=<%= filters.region %>&isActiveRegion=<%= filters.isActiveRegion ? 'true' : '' %>&statusCategory=<%= filters.statusCategory %>&activeBusinessOnly=<%= filters.activeBusinessOnly ? 'true' : '' %>"><%= i %></a>
                 </li>
               <% } %>
               
               <% if (pagination.current < pagination.total) { %>
                 <li class="page-item">
-                  <a class="page-link" href="/vendors?page=<%= pagination.current + 1 %>&search=<%= filters.search %>&status=<%= filters.status %>&region=<%= filters.region %>" aria-label="Next">
+                  <a class="page-link" href="/vendors?page=<%= pagination.current + 1 %>&search=<%= filters.search %>&status=<%= filters.status %>&region=<%= filters.region %>&isActiveRegion=<%= filters.isActiveRegion ? 'true' : '' %>&statusCategory=<%= filters.statusCategory %>&activeBusinessOnly=<%= filters.activeBusinessOnly ? 'true' : '' %>" aria-label="Next">
                     <span aria-hidden="true">&raquo;</span>
                   </a>
                 </li>

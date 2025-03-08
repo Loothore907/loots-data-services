@@ -1,0 +1,238 @@
+<!-- views/regions/index.ejs -->
+<%- include('../partials/header') %>
+
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Regions</h1>
+    <a href="/regions/new" class="btn btn-primary">
+      <i class="bi bi-plus-lg"></i> Add New Region
+    </a>
+  </div>
+
+  <!-- Region Statistics -->
+  <div class="row g-4 mb-4">
+    <div class="col-md-4">
+      <div class="card h-100 bg-primary text-white">
+        <div class="card-body">
+          <h5 class="card-title">Total Regions</h5>
+          <div class="d-flex align-items-center">
+            <div class="display-4 me-3"><%= regions.length %></div>
+            <i class="bi bi-geo-alt display-6"></i>
+          </div>
+          <p class="card-text mt-2 mb-0">Defined geographic regions</p>
+        </div>
+      </div>
+    </div>
+    
+    <div class="col-md-4">
+      <div class="card h-100 bg-success text-white">
+        <div class="card-body">
+          <h5 class="card-title">Active Regions</h5>
+          <div class="d-flex align-items-center">
+            <div class="display-4 me-3"><%= regions.filter(r => r.isActive).length %></div>
+            <i class="bi bi-check-circle display-6"></i>
+          </div>
+          <p class="card-text mt-2 mb-0"><%= activeCount %> vendors in active regions</p>
+        </div>
+      </div>
+    </div>
+    
+    <div class="col-md-4">
+      <div class="card h-100 bg-info text-white">
+        <div class="card-body">
+          <h5 class="card-title">Priority Regions</h5>
+          <div class="d-flex align-items-center">
+            <div class="display-4 me-3"><%= regions.filter(r => r.isPriority).length %></div>
+            <i class="bi bi-star display-6"></i>
+          </div>
+          <p class="card-text mt-2 mb-0"><%= priorityCount %> vendors in priority regions</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Regions Table -->
+  <div class="card">
+    <div class="card-body">
+      <% if (regions.length === 0) { %>
+        <div class="alert alert-info">
+          No regions have been defined yet. Click "Add New Region" to create one.
+        </div>
+      <% } else { %>
+        <div class="table-responsive">
+          <table class="table table-striped table-hover">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Status</th>
+                <th>ZIP Codes</th>
+                <th>Vendors</th>
+                <th>Last Updated</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% regions.forEach(region => { %>
+                <tr>
+                  <td>
+                    <a href="/regions/<%= region.id %>" class="fw-bold text-decoration-none">
+                      <%= region.name %>
+                    </a>
+                  </td>
+                  <td>
+                    <form class="d-inline-block" action="/regions/<%= region.id %>/toggle-status" method="POST">
+                      <input type="hidden" name="isActive" value="<%= !region.isActive %>">
+                      <button type="submit" class="btn btn-sm <%= region.isActive ? 'btn-success' : 'btn-outline-secondary' %>" 
+                              title="<%= region.isActive ? 'Deactivate region' : 'Activate region' %>">
+                        <i class="bi <%= region.isActive ? 'bi-toggle-on' : 'bi-toggle-off' %>"></i>
+                        <%= region.isActive ? 'Active' : 'Inactive' %>
+                      </button>
+                    </form>
+                    
+                    <form class="d-inline-block ms-1" action="/regions/<%= region.id %>/toggle-priority" method="POST">
+                      <input type="hidden" name="isPriority" value="<%= !region.isPriority %>">
+                      <button type="submit" class="btn btn-sm <%= region.isPriority ? 'btn-info' : 'btn-outline-info' %>"
+                              title="<%= region.isPriority ? 'Remove priority status' : 'Set as priority region' %>">
+                        <i class="bi <%= region.isPriority ? 'bi-star-fill' : 'bi-star' %>"></i>
+                        Priority
+                      </button>
+                    </form>
+                  </td>
+                  <td>
+                    <% if (region.zipCodes && region.zipCodes.length > 0) { %>
+                      <span class="badge bg-light text-dark"><%= region.zipCodes.length %> ZIP codes</span>
+                      <button class="btn btn-sm btn-outline-secondary ms-1" 
+                              type="button" 
+                              data-bs-toggle="modal" 
+                              data-bs-target="#zipCodesModal"
+                              data-region-name="<%= region.name %>"
+                              data-region-zipcodes="<%= region.zipCodes.join(',') %>">
+                        <i class="bi bi-eye-fill"></i>
+                      </button>
+                    <% } else { %>
+                      <span class="text-muted">No ZIP codes</span>
+                    <% } %>
+                  </td>
+                  <td>
+                    <a href="/regions/<%= region.id %>" class="text-decoration-none">
+                      <%= region.vendorCount %> vendors
+                    </a>
+                  </td>
+                  <td>
+                    <% if (region.lastUpdated) { %>
+                      <%= new Date(region.lastUpdated).toLocaleDateString() %>
+                    <% } else { %>
+                      <span class="text-muted">Never</span>
+                    <% } %>
+                  </td>
+                  <td>
+                    <div class="btn-group" role="group" aria-label="Region actions">
+                      <a href="/regions/<%= region.id %>" class="btn btn-sm btn-info">
+                        <i class="bi bi-eye"></i>
+                      </a>
+                      <a href="/regions/<%= region.id %>/edit" class="btn btn-sm btn-warning">
+                        <i class="bi bi-pencil"></i>
+                      </a>
+                      <button type="button" class="btn btn-sm btn-danger" 
+                              data-bs-toggle="modal" 
+                              data-bs-target="#deleteModal" 
+                              data-region-id="<%= region.id %>"
+                              data-region-name="<%= region.name %>">
+                        <i class="bi bi-trash"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      <% } %>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="deleteModalLabel">Confirm Delete</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p>Are you sure you want to delete the region <strong id="regionName"></strong>?</p>
+        <p class="text-danger">This action cannot be undone and will remove all associations between vendors and this region.</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <form id="deleteForm" method="POST" action="">
+          <button type="submit" class="btn btn-danger">Delete Region</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ZIP Codes Modal -->
+<div class="modal fade" id="zipCodesModal" tabindex="-1" aria-labelledby="zipCodesModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="zipCodesModalLabel">ZIP Codes for <span id="modalRegionName"></span></h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="d-flex flex-wrap gap-2" id="zipCodesContainer">
+          <!-- ZIP codes will be added here dynamically -->
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Handle ZIP codes modal
+    const zipCodesModal = document.getElementById('zipCodesModal');
+    if (zipCodesModal) {
+      zipCodesModal.addEventListener('show.bs.modal', event => {
+        const button = event.relatedTarget;
+        const regionName = button.getAttribute('data-region-name');
+        const zipCodes = button.getAttribute('data-region-zipcodes').split(',');
+        
+        document.getElementById('modalRegionName').textContent = regionName;
+        
+        // Clear previous content
+        const container = document.getElementById('zipCodesContainer');
+        container.innerHTML = '';
+        
+        // Add ZIP codes as badges
+        zipCodes.forEach(zip => {
+          const badge = document.createElement('span');
+          badge.className = 'badge bg-light text-dark p-2';
+          badge.textContent = zip;
+          container.appendChild(badge);
+        });
+      });
+    }
+    
+    // Handle delete modal
+    const deleteModal = document.getElementById('deleteModal');
+    if (deleteModal) {
+      deleteModal.addEventListener('show.bs.modal', event => {
+        const button = event.relatedTarget;
+        const regionId = button.getAttribute('data-region-id');
+        const regionName = button.getAttribute('data-region-name');
+        
+        document.getElementById('regionName').textContent = regionName;
+        document.getElementById('deleteForm').action = `/regions/${regionId}/delete`;
+      });
+    }
+  });
+</script>
+
+<%- include('../partials/footer') %>

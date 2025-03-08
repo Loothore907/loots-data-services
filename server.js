@@ -9,6 +9,7 @@ const logger = require('./utils/logger');
 // Import routes
 const vendorRoutes = require('./routes/vendors');
 const workflowRoutes = require('./routes/workflows');
+const regionRoutes = require('./routes/region');
 
 // Setup file upload storage for multipart forms
 const storage = multer.diskStorage({
@@ -42,7 +43,10 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.set('view engine', 'ejs');
 
-// Dashboard home page
+// Initialize global variables for active workflows
+global.activeWorkflows = new Map();
+
+// Dashboard home page with enhanced region stats
 app.get('/', async (req, res) => {
   try {
     // Get vendors count
@@ -50,6 +54,58 @@ app.get('/', async (req, res) => {
     const db = getAdminDb();
     const countSnapshot = await db.collection('vendors').count().get();
     const vendorCount = countSnapshot.data().count;
+    
+    // Get region information
+    const regionSnapshot = await db.collection('regions').get();
+    const regions = [];
+    regionSnapshot.forEach(doc => {
+      regions.push({
+        id: doc.id,
+        ...doc.data()
+      });
+    });
+    
+    // Get active regions count
+    const activeRegions = regions.filter(r => r.isActive);
+    const priorityRegions = regions.filter(r => r.isPriority);
+    
+    // Get vendors to count by region
+    const vendorSnapshot = await db.collection('vendors').get();
+    const vendors = [];
+    vendorSnapshot.forEach(doc => {
+      vendors.push({
+        id: doc.id,
+        ...doc.data()
+      });
+    });
+    
+    // Count vendors in active regions
+    const { extractZipCodeFromAddress } = require('./models/region');
+    const vendorsInActiveRegions = vendors.filter(vendor => {
+      if (!vendor.location || !vendor.location.address) return false;
+      const zipCode = extractZipCodeFromAddress(vendor.location.address);
+      if (!zipCode) return false;
+      
+      // Check if vendor's zip code is in any active region
+      return activeRegions.some(region => 
+        region.zipCodes && region.zipCodes.includes(zipCode)
+      );
+    });
+    
+    // Count vendors in priority regions
+    const vendorsInPriorityRegions = vendors.filter(vendor => {
+      if (!vendor.location || !vendor.location.address) return false;
+      const zipCode = extractZipCodeFromAddress(vendor.location.address);
+      if (!zipCode) return false;
+      
+      // Check if vendor's zip code is in any priority region
+      return priorityRegions.some(region => 
+        region.zipCodes && region.zipCodes.includes(zipCode)
+      );
+    });
+    
+    // Count partner vendors
+    const partnerVendors = vendors.filter(v => v.isPartner);
     
     // Check for recent workflows
     const recentWorkflows = Array.from(global.activeWorkflows || [])
@@ -65,7 +121,23 @@ app.get('/', async (req, res) => {
     res.render('dashboard', { 
       stats: {
         vendorCount,
-        recentWorkflows
+        regionCount: regions.length,
+        activeRegionCount: activeRegions.length,
+        activeCount: vendorsInActiveRegions.length,
+        priorityCount: vendorsInPriorityRegions.length,
+        partnerCount: partnerVendors.length,
+        recentWorkflows,
+        
+        // Add percentage stats
+        geocodedPercent: Math.round(vendors.filter(v => 
+          v.location && v.location.coordinates && 
+          v.location.coordinates.latitude && 
+          v.location.coordinates.longitude
+        ).length / (vendors.length || 1) * 100),
+        
+        priorityRegionPercent: Math.round(vendorsInPriorityRegions.length / (vendors.length || 1) * 100),
+        
+        activeRegionPercent: Math.round(vendorsInActiveRegions.length / (vendors.length || 1) * 100)
       } 
     });
   } catch (error) {
@@ -73,6 +145,8 @@ app.get('/', async (req, res) => {
     res.render('dashboard', { 
       stats: {
         vendorCount: 'Error',
+        regionCount: 'Error',
+        activeRegionCount: 'Error',
         recentWorkflows: []
       } 
     });
@@ -82,6 +156,61 @@ app.get('/', async (req, res) => {
 // Mount routes
 app.use('/vendors', vendorRoutes);
 app.use('/workflows', workflowRoutes);
+app.use('/regions', regionRoutes);
+
+// Debug script to add to server.js for troubleshooting routes
+// Add this right after mounting routes but before error handlers
+
+// Print all registered routes for debugging
+console.log('Registered Routes:');
+console.log('=================');
+console.log('GET /');
+
+function printRoutes(routePrefix, router) {
+  if (!router.stack) return;
+  
+  router.stack.forEach(function(r) {
+    if (r.route && r.route.path) {
+      Object.keys(r.route.methods).forEach(method => {
+        if (r.route.methods[method]) {
+          console.log(`${method.toUpperCase()} ${routePrefix}${r.route.path}`);
+        }
+      });
+    } else if (r.name === 'router' && r.handle.stack) {
+      // This is a mounted router
+      printRoutes(routePrefix, r.handle);
+    }
+  });
+}
+
+// Print routes for each mounted router
+console.log('Vendor Routes:');
+printRoutes('/vendors', vendorRoutes);
+
+console.log('Workflow Routes:');
+printRoutes('/workflows', workflowRoutes);
+
+console.log('Region Routes:');
+printRoutes('/regions', regionRoutes);
+
+// Check if all expected route handlers exist
+console.log('\nChecking region routes implementation:');
+const regionRouteMethods = Object.getOwnPropertyNames(Object.getPrototypeOf(regionRoutes));
+console.log('Region route handler methods:', regionRouteMethods);
+
+// Print all express registered routes in a flat list
+console.log('\nAll Express Routes:');
+function print(path, layer) {
+  if (layer.route) {
+    const methods = Object.keys(layer.route.methods)
+      .filter(method => layer.route.methods[method])
+      .join(',');
+    console.log(`${methods.toUpperCase()} ${path}${layer.route.path}`);
+  } else if (layer.name === 'router' && layer.handle.stack) {
+    layer.handle.stack.forEach(print.bind(null, path + layer.regexp.source.replace(/\\\/\?(?=\/|$)/g, '')));
+  }
+}
+app._router.stack.forEach(print.bind(null, ''));
 
 // Error handler
 app.use((err, req, res, next) => {

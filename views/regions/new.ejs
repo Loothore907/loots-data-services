@@ -1,0 +1,274 @@
+<!-- views/regions/new.ejs -->
+<%- include('../partials/header') %>
+
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Add New Region</h1>
+    <a href="/regions" class="btn btn-outline-secondary">
+      <i class="bi bi-arrow-left"></i> Back to Regions
+    </a>
+  </div>
+
+  <div class="card">
+    <div class="card-body">
+      <form id="regionForm" method="POST" action="/regions">
+        <div class="row g-3">
+          <!-- Basic Info -->
+          <div class="col-12">
+            <h5 class="border-bottom pb-2 mb-3">Region Information</h5>
+          </div>
+          
+          <div class="col-md-12">
+            <label for="name" class="form-label">Region Name*</label>
+            <input type="text" class="form-control <%= errors.name ? 'is-invalid' : '' %>" 
+                  id="name" name="name" value="<%= region.name || '' %>" required>
+            <% if (errors.name) { %>
+              <div class="invalid-feedback"><%= errors.name %></div>
+            <% } %>
+            <div class="form-text">Enter a descriptive name for this region (e.g., "Anchorage", "MatSu Valley")</div>
+          </div>
+          
+          <div class="col-12">
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="checkbox" id="isActive" name="isActive" 
+                    <%= (region.isActive || false) ? 'checked' : '' %>>
+              <label class="form-check-label" for="isActive">
+                Active Region <span class="badge bg-success ms-1">Active</span>
+              </label>
+            </div>
+            <div class="form-text">Active regions have vendors displayed in the app</div>
+          </div>
+          
+          <div class="col-12">
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="checkbox" id="isPriority" name="isPriority" 
+                    <%= (region.isPriority !== false) ? 'checked' : '' %>>
+              <label class="form-check-label" for="isPriority">
+                Priority Region <span class="badge bg-info ms-1">Priority</span>
+              </label>
+            </div>
+            <div class="form-text">Priority regions are included in data processing workflows</div>
+          </div>
+          
+          <div class="col-12 mt-4">
+            <h5 class="border-bottom pb-2 mb-3">ZIP Codes</h5>
+          </div>
+          
+          <div class="col-12">
+            <label for="zipCodes" class="form-label">ZIP Codes*</label>
+            <textarea class="form-control <%= errors.zipCodes ? 'is-invalid' : '' %>" 
+                     id="zipCodes" name="zipCodes" rows="6" required><%= region.zipCodesText || (region.zipCodes ? region.zipCodes.join(', ') : '') %></textarea>
+            <% if (errors.zipCodes) { %>
+              <div class="invalid-feedback"><%= errors.zipCodes %></div>
+            <% } %>
+            <div class="form-text">Enter ZIP codes separated by commas or new lines (e.g., "99501, 99502, 99503")</div>
+          </div>
+          
+          <div class="col-12 mt-4">
+            <button type="submit" class="btn btn-primary">Create Region</button>
+            <a href="/regions" class="btn btn-outline-secondary">Cancel</a>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // ZIP code formatting helpers
+    const zipCodesField = document.getElementById('zipCodes');
+    
+    zipCodesField.addEventListener('blur', function() {
+      // Format ZIP codes on blur
+      const zipCodes = this.value
+        .split(/[\n,]/)
+        .map(zip => zip.trim())
+        .filter(zip => zip.length > 0);
+      
+      this.value = zipCodes.join(', ');
+    });
+    
+    // Form validation
+    const form = document.getElementById('regionForm');
+    form.addEventListener('submit', function(e) {
+      const zipCodes = zipCodesField.value
+        .split(/[\n,]/)
+        .map(zip => zip.trim())
+        .filter(zip => zip.length > 0);
+      
+      let isValid = true;
+      
+      // Validate ZIP codes
+      const invalidZips = zipCodes.filter(zip => !/^\d{5}$/.test(zip));
+      if (invalidZips.length > 0) {
+        e.preventDefault();
+        zipCodesField.classList.add('is-invalid');
+        
+        // Create or update feedback message
+        let feedback = zipCodesField.nextElementSibling;
+        if (!feedback || !feedback.classList.contains('invalid-feedback')) {
+          feedback = document.createElement('div');
+          feedback.className = 'invalid-feedback';
+          zipCodesField.parentNode.insertBefore(feedback, zipCodesField.nextSibling);
+        }
+        
+        feedback.textContent = `Invalid ZIP codes: ${invalidZips.join(', ')}. All ZIP codes must be 5 digits.`;
+        isValid = false;
+      } else {
+        zipCodesField.classList.remove('is-invalid');
+      }
+      
+      return isValid;
+    });
+  });
+</script>
+
+<%- include('../partials/footer') %>
+
+<!-- views/regions/edit.ejs -->
+<%- include('../partials/header') %>
+
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Edit Region: <%= region.name %></h1>
+    <div>
+      <a href="/regions/<%= region.id %>" class="btn btn-outline-secondary me-2">Cancel</a>
+      <button form="regionForm" type="submit" class="btn btn-success">
+        <i class="bi bi-save"></i> Save Changes
+      </button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-body">
+      <form id="regionForm" method="POST" action="/regions/<%= region.id %>">
+        <div class="row g-3">
+          <!-- Basic Info -->
+          <div class="col-12">
+            <h5 class="border-bottom pb-2 mb-3">Region Information</h5>
+          </div>
+          
+          <div class="col-md-12">
+            <label for="name" class="form-label">Region Name*</label>
+            <input type="text" class="form-control <%= errors.name ? 'is-invalid' : '' %>" 
+                  id="name" name="name" value="<%= region.name %>" required>
+            <% if (errors.name) { %>
+              <div class="invalid-feedback"><%= errors.name %></div>
+            <% } %>
+            <div class="form-text">Enter a descriptive name for this region (e.g., "Anchorage", "MatSu Valley")</div>
+          </div>
+          
+          <div class="col-12">
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="checkbox" id="isActive" name="isActive" 
+                    <%= region.isActive ? 'checked' : '' %>>
+              <label class="form-check-label" for="isActive">
+                Active Region <span class="badge bg-success ms-1">Active</span>
+              </label>
+            </div>
+            <div class="form-text">Active regions have vendors displayed in the app</div>
+          </div>
+          
+          <div class="col-12">
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="checkbox" id="isPriority" name="isPriority" 
+                    <%= region.isPriority ? 'checked' : '' %>>
+              <label class="form-check-label" for="isPriority">
+                Priority Region <span class="badge bg-info ms-1">Priority</span>
+              </label>
+            </div>
+            <div class="form-text">Priority regions are included in data processing workflows</div>
+          </div>
+          
+          <div class="col-12 mt-4">
+            <h5 class="border-bottom pb-2 mb-3">ZIP Codes</h5>
+          </div>
+          
+          <div class="col-12">
+            <label for="zipCodes" class="form-label">ZIP Codes*</label>
+            <textarea class="form-control <%= errors.zipCodes ? 'is-invalid' : '' %>" 
+                     id="zipCodes" name="zipCodes" rows="6" required><%= region.zipCodesText || (region.zipCodes ? region.zipCodes.join(', ') : '') %></textarea>
+            <% if (errors.zipCodes) { %>
+              <div class="invalid-feedback"><%= errors.zipCodes %></div>
+            <% } %>
+            <div class="form-text">Enter ZIP codes separated by commas or new lines (e.g., "99501, 99502, 99503")</div>
+          </div>
+          
+          <div class="col-12">
+            <div class="card bg-light">
+              <div class="card-body">
+                <h6 class="card-title">Region Statistics</h6>
+                <p class="card-text">
+                  This region was last updated on <%= new Date(region.lastUpdated).toLocaleString() %>.
+                </p>
+                <p class="card-text">
+                  <a href="/regions/<%= region.id %>" class="btn btn-sm btn-outline-primary">
+                    <i class="bi bi-eye"></i> View Vendors in Region
+                  </a>
+                </p>
+              </div>
+            </div>
+          </div>
+          
+          <div class="col-12 mt-4">
+            <button type="submit" class="btn btn-primary">Save Changes</button>
+            <a href="/regions/<%= region.id %>" class="btn btn-outline-secondary">Cancel</a>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // ZIP code formatting helpers
+    const zipCodesField = document.getElementById('zipCodes');
+    
+    zipCodesField.addEventListener('blur', function() {
+      // Format ZIP codes on blur
+      const zipCodes = this.value
+        .split(/[\n,]/)
+        .map(zip => zip.trim())
+        .filter(zip => zip.length > 0);
+      
+      this.value = zipCodes.join(', ');
+    });
+    
+    // Form validation
+    const form = document.getElementById('regionForm');
+    form.addEventListener('submit', function(e) {
+      const zipCodes = zipCodesField.value
+        .split(/[\n,]/)
+        .map(zip => zip.trim())
+        .filter(zip => zip.length > 0);
+      
+      let isValid = true;
+      
+      // Validate ZIP codes
+      const invalidZips = zipCodes.filter(zip => !/^\d{5}$/.test(zip));
+      if (invalidZips.length > 0) {
+        e.preventDefault();
+        zipCodesField.classList.add('is-invalid');
+        
+        // Create or update feedback message
+        let feedback = zipCodesField.nextElementSibling;
+        if (!feedback || !feedback.classList.contains('invalid-feedback')) {
+          feedback = document.createElement('div');
+          feedback.className = 'invalid-feedback';
+          zipCodesField.parentNode.insertBefore(feedback, zipCodesField.nextSibling);
+        }
+        
+        feedback.textContent = `Invalid ZIP codes: ${invalidZips.join(', ')}. All ZIP codes must be 5 digits.`;
+        isValid = false;
+      } else {
+        zipCodesField.classList.remove('is-invalid');
+      }
+      
+      return isValid;
+    });
+  });
+</script>
+
+<%- include('../partials/footer') %>
