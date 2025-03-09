@@ -29,6 +29,19 @@ try {
       delete transformed.location.formattedAddress;
     }
     
+    // Handle zipCode field - ensure it's properly named
+    if (transformed.location) {
+      // If zip exists but zipCode doesn't, copy zip to zipCode
+      if (transformed.location.zip && !transformed.location.zipCode) {
+        transformed.location.zipCode = transformed.location.zip;
+      }
+      
+      // Remove zip field if it exists (use zipCode consistently)
+      if (transformed.location.zip) {
+        delete transformed.location.zip;
+      }
+    }
+    
     // Ensure hours object exists
     if (!transformed.hours) {
       transformed.hours = {};

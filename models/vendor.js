@@ -9,6 +9,8 @@ const vendorSchema = Joi.object({
   status: Joi.string().allow(null, ''),
   location: Joi.object({
     address: Joi.string().required(),
+    originalAddress: Joi.string().allow(null, ''),
+    zipCode: Joi.string().pattern(/^\d{5}$/).allow(null),
     coordinates: Joi.object({
       latitude: Joi.number().allow(null),
       longitude: Joi.number().allow(null)
@@ -73,13 +75,24 @@ function normalizeVendor(rawVendor) {
     delete vendor.location.longitude;
   }
   
+  // Ensure zipCode field exists
+  if (vendor.location.zipCode === undefined) {
+    // Try to extract from address if not already set
+    if (vendor.location.address) {
+      const zipMatch = vendor.location.address.match(/\b(\d{5})(?:-\d{4})?\b/);
+      vendor.location.zipCode = zipMatch ? zipMatch[1] : null;
+    } else {
+      vendor.location.zipCode = null;
+    }
+  }
+  
   // Handle case where coordinates are nested but we need them at the top level for validation
   if (vendor.location.coordinates && 
       vendor.location.coordinates.latitude && 
       vendor.location.coordinates.longitude) {
-    // Ensure the coordinates are numbers
-    vendor.location.coordinates.latitude = parseFloat(vendor.location.coordinates.latitude);
-    vendor.location.coordinates.longitude = parseFloat(vendor.location.coordinates.longitude);
+    // Ensure they're numbers
+    vendor.location.coordinates.latitude = Number(vendor.location.coordinates.latitude);
+    vendor.location.coordinates.longitude = Number(vendor.location.coordinates.longitude);
     
     // Add a flag to indicate valid coordinates
     vendor.hasValidCoordinates = true;

@@ -10,6 +10,30 @@ const { validateVendorCoordinates } = require('../utils/coordinate-validator');
 const logger = require('../utils/logger');
 
 /**
+ * Extracts zip code from address and adds it as a separate field in vendor object
+ * @param {Object} vendor - Vendor object to process
+ * @returns {Object} - Vendor with added zipCode field
+ */
+function addZipCodeField(vendor) {
+  if (!vendor.location || !vendor.location.address) return vendor;
+  
+  // Extract zip code using regex
+  const zipMatch = vendor.location.address.match(/\b(\d{5})(?:-\d{4})?\b/);
+  
+  // Create a deep copy to avoid mutations
+  const updatedVendor = JSON.parse(JSON.stringify(vendor));
+  
+  // Add zipCode field directly to location object
+  if (zipMatch && zipMatch[1]) {
+    updatedVendor.location.zipCode = zipMatch[1];
+  } else {
+    updatedVendor.location.zipCode = null;
+  }
+  
+  return updatedVendor;
+}
+
+/**
  * Process vendor data through the updated workflow:
  * 1. Import & normalize
  * 2. Filter revoked licenses
@@ -31,13 +55,15 @@ async function processVendors(options) {
     archiveNonPriority = true,          // Archive non-priority vendors
     cleanAddresses = true,              // Clean addresses before geocoding
     validateCoordinates = true,         // Validate coordinates after geocoding
-    syncMode = 'overwrite',             // 'overwrite', 'append', or 'update'
+    syncMode = 'merge',                 // Sync mode: merge or overwrite
     collection = 'vendors',             // Firestore collection
     geocodingConcurrency = 2,           // Concurrent geocoding requests
     geocodingDelay = 200,               // Delay between geocoding batches
     skipExistingCoordinates = true,     // Skip vendors that already have coordinates
-    skipSync = true,                    // Skip Firebase sync step (defaults to true)
-    geocodingProvider = ''              // Geocoding provider to use
+    skipSync = true,                    // Skip Firebase sync
+    provider = '',                      // Geocoding provider override
+    deleteAfterArchive = true,          // Delete files after archiving
+    deleteAfterSync = true              // Delete output file after sync
   } = options;
   
   try {
@@ -70,24 +96,33 @@ async function processVendors(options) {
     const timestamp = new Date().toISOString().replace(/[:\.]/g, '-');
     const archivedInputPath = path.join(inputArchiveDir, `${path.basename(input, '.json')}_processed_${timestamp}.json`);
     fs.copyFileSync(input, archivedInputPath);
+    
     // Only remove if configured/requested
-    fs.unlinkSync(input);
+    if (deleteAfterArchive) {
+      fs.unlinkSync(input);
+      logger.info(`Deleted input file after archiving: ${input}`);
+    }
+    
     logger.info(`Archived input file to ${archivedInputPath}`);
     
     // Normalize vendors
     const normalizedVendors = vendors.map(vendor => normalizeVendor(vendor));
     logger.info(`Normalized ${normalizedVendors.length} vendors`);
     
-    // STEP 2: Filter out revoked licenses
-    const activeVendors = normalizedVendors.filter(vendor => 
+    // Extract ZIP codes from addresses
+    const vendorsWithZip = normalizedVendors.map(vendor => addZipCodeField(vendor));
+    logger.info(`Added zip code field to ${vendorsWithZip.length} vendors`);
+    
+    // Filter out revoked licenses
+    const activeVendors = vendorsWithZip.filter(vendor => 
       (vendor.status || '').toLowerCase() !== 'revoked'
     );
     
-    const revokedVendors = normalizedVendors.filter(vendor => 
+    const revokedVendors = vendorsWithZip.filter(vendor => 
       (vendor.status || '').toLowerCase() === 'revoked'
     );
     
-    logger.info(`Found ${normalizedVendors.length} total vendors: ${activeVendors.length} active, ${revokedVendors.length} revoked`);
+    logger.info(`Found ${vendorsWithZip.length} total vendors: ${activeVendors.length} active, ${revokedVendors.length} revoked`);
     
     // Save revoked vendors to failures directory if any exist
     if (revokedVendors.length > 0) {
@@ -220,7 +255,7 @@ async function processVendors(options) {
       priorityVendors = priorityVendors.map(vendor => {
         if (!vendor.location || !vendor.location.address) return vendor;
         
-        const { cleaned, wasModified, modifications } = cleanAddressForGeocoding(vendor.location.address);
+        const { cleaned, wasModified, modifications, extractedZip } = cleanAddressForGeocoding(vendor.location.address);
         
         if (wasModified) {
           cleanedCount++;
@@ -233,7 +268,20 @@ async function processVendors(options) {
             location: {
               ...vendor.location,
               originalAddress: vendor.location.address,
-              address: cleaned
+              address: cleaned,
+              zipCode: extractedZip || vendor.location.zipCode // Use extracted ZIP or keep existing
+            }
+          };
+        }
+        
+        // If the address wasn't modified but we extracted a ZIP, add it
+        if (extractedZip) {
+          logger.debug(`Extracted ZIP for ${vendor.name}: ${extractedZip}`);
+          return {
+            ...vendor,
+            location: {
+              ...vendor.location,
+              zipCode: extractedZip
             }
           };
         }
@@ -242,6 +290,10 @@ async function processVendors(options) {
       });
       
       logger.info(`Cleaned ${cleanedCount} addresses`);
+      
+      // Re-extract ZIP codes after address cleaning to ensure consistency
+      priorityVendors = priorityVendors.map(vendor => addZipCodeField(vendor));
+      logger.info(`Re-extracted zip codes after address cleaning`);
     }
     
     // STEP 5: Geocode Addresses
@@ -255,7 +307,7 @@ async function processVendors(options) {
     const geocodeOptions = {
       concurrency: geocodingConcurrency,
       delayMs: geocodingDelay,
-      provider: geocodingProvider
+      provider: provider
     };
     
     const geocodeResult = await batchGeocodeVendors(vendorsToGeocode, geocodeOptions);
@@ -293,6 +345,10 @@ async function processVendors(options) {
       });
       
       logger.info(`Validation results: ${validVendors.length} valid, ${invalidVendors.length} invalid`);
+      
+      // Verify ZIP codes after geocoding
+      validVendors = validVendors.map(vendor => addZipCodeField(vendor));
+      logger.info(`Verified zip codes after geocoding`);
     }
     
     // Archive geocoded vendors (both valid and invalid)
@@ -314,6 +370,12 @@ async function processVendors(options) {
     fs.writeFileSync(archiveValidPath, JSON.stringify(validVendors, null, 2));
     logger.info(`Archived ${validVendors.length} successfully geocoded vendors to ${archiveValidPath}`);
     
+    // Delete the processed file after archiving
+    if (deleteAfterArchive) {
+      fs.unlinkSync(validGeocodePath);
+      logger.info(`Deleted processed file after archiving: ${validGeocodePath}`);
+    }
+    
     // Save invalid coordinates to separate file
     if (invalidVendors.length > 0) {
       const invalidGeocodePath = path.join(geocodedDir, 'geocoded-invalid-latest.json');
@@ -322,6 +384,12 @@ async function processVendors(options) {
       const archiveInvalidPath = path.join(geocodeArchiveDir, `geocoded-invalid-${timestamp}.json`);
       fs.writeFileSync(archiveInvalidPath, JSON.stringify(invalidVendors, null, 2));
       logger.info(`Archived ${invalidVendors.length} vendors with invalid coordinates to ${archiveInvalidPath}`);
+      
+      // Delete the processed file after archiving
+      if (deleteAfterArchive) {
+        fs.unlinkSync(invalidGeocodePath);
+        logger.info(`Deleted processed file after archiving: ${invalidGeocodePath}`);
+      }
     }
     
     // STEP 7: Transform Schema
@@ -335,6 +403,7 @@ async function processVendors(options) {
         ...vendor,
         location: {
           address: vendor.location.originalAddress || vendor.location.address,
+          zipCode: vendor.location.zipCode,
           coordinates: {
             latitude: vendor.location.coordinates?.latitude,
             longitude: vendor.location.coordinates?.longitude
@@ -425,6 +494,12 @@ async function processVendors(options) {
       }
       
       logger.info(`Sync completed successfully: ${syncResult.stats.successful} vendors synced`);
+      
+      // Delete the output file after successful sync
+      if (deleteAfterSync) {
+        fs.unlinkSync(output);
+        logger.info(`Deleted output file after successful sync: ${output}`);
+      }
     } else if (pendingWorkflow.pending) {
       logger.info(`===============================================================`);
       logger.info(`ATTENTION: There ${pendingWorkflow.count === 1 ? 'is' : 'are'} ${pendingWorkflow.count} vendor${pendingWorkflow.count === 1 ? '' : 's'} with failed geocoding.`);

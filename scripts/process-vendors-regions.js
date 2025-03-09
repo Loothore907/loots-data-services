@@ -24,6 +24,8 @@ program
   .option('--validate-coordinates', 'Validate coordinates after geocoding', true)  
   .option('-p, --provider <provider>', 'Geocoding provider (google, rapidapi, etc.)', '')
   .option('--dry-run', 'Validate and process data without writing to Firebase', false)
+  .option('--delete-after-archive', 'Delete files after archiving', true)
+  .option('--delete-after-sync', 'Delete output file after successful sync', true)
   .parse(process.argv);
 
 const options = program.opts();
@@ -51,9 +53,11 @@ async function main() {
       collection: options.collection,
       geocodingConcurrency: parseInt(options.concurrency, 10),
       geocodingDelay: parseInt(options.delay, 10),
-      geocodingProvider: options.provider,
+      provider: options.provider,
       skipExistingCoordinates: options.skipExisting,
-      skipSync: !options.sync || options.dryRun
+      skipSync: !options.sync || options.dryRun,
+      deleteAfterArchive: options.deleteAfterArchive,
+      deleteAfterSync: options.deleteAfterSync
     };
     
     // Display options

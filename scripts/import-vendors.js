@@ -5,6 +5,7 @@ const path = require('path');
 const { program } = require('commander');
 const { normalizeVendor, validateVendor } = require('../models/vendor');
 const logger = require('../utils/logger');
+const { cleanAddressForGeocoding } = require('../utils/address-cleaner');
 require('dotenv').config();
 
 // Configure CLI options
@@ -53,82 +54,6 @@ function parseCSV(content) {
       }
     };
   });
-}
-
-/**
- * Cleans addresses for better geocoding success
- * @param {string} address - The original address
- * @returns {Object} - Cleaned address and metadata
- */
-function cleanAddressForGeocoding(address) {
-  const original = address;
-  let cleaned = address;
-  
-  // Track modifications made
-  const modifications = [];
-  
-  // Remove secondary address information while maintaining primary structure
-  const secondaryPatterns = [
-    // Remove Suite/Unit/Building info
-    { pattern: /,?\s*(?:Suite|Ste\.?|Unit|Bldg\.?|Building)\s+[#]?[A-Za-z0-9-]+/gi, name: 'suite/unit info' },
-    
-    // Remove apartment designations 
-    { pattern: /,?\s*(?:Apt\.?|Apartment)\s+[#]?[A-Za-z0-9-]+/gi, name: 'apartment info' },
-    
-    // Remove floor/space/room designations
-    { pattern: /,?\s*(?:Floor|Fl\.?|Space|Sp\.?|Room|Rm\.?)\s+[#]?[A-Za-z0-9-]+/gi, name: 'floor/space info' },
-    
-    // Remove other secondary designations (upper/lower level, cabin, etc.)
-    { pattern: /,?\s*(?:Upper|Lower|Top|Bottom|Cabin|Office)\s+[A-Za-z0-9-]+/gi, name: 'level designation' },
-    
-    // Remove parenthetical notes
-    { pattern: /\s*\(.*?\)/gi, name: 'parenthetical info' },
-    
-    // Pattern for "descriptive location" - after a comma that isn't followed by a city/state pattern
-    { pattern: /,\s*(?!(?:[A-Za-z\s]+,\s*[A-Z]{2}|[A-Z]{2}\s+\d{5}))([^,]+)(?=,|$)/g, name: 'descriptive location' }
-  ];
-  
-  // Apply each pattern and track changes
-  for (const { pattern, name } of secondaryPatterns) {
-    const previousText = cleaned;
-    cleaned = cleaned.replace(pattern, '');
-    
-    if (previousText !== cleaned) {
-      modifications.push(`Removed ${name}`);
-    }
-  }
-  
-  // Clean up any residual formatting issues
-  cleaned = cleaned.replace(/,\s*,/g, ',')           // Fix double commas
-                   .replace(/\s+,/g, ',')            // Fix spaces before commas
-                   .replace(/,+/g, ',')              // Fix multiple commas
-                   .replace(/\s+/g, ' ')             // Fix multiple spaces
-                   .trim();                          // Trim extra whitespace
-  
-  // Remove trailing comma
-  cleaned = cleaned.replace(/,$/, '');
-  
-  // Ensure we have a standard format by keeping only the main parts if possible
-  const mainAddressPattern = /^([^,]+),\s*([^,]+),\s*([A-Z]{2})\s*(\d{5})/;
-  const match = cleaned.match(mainAddressPattern);
-  
-  if (match) {
-    // If it matches the standard pattern, reformulate to ensure consistency
-    const [_, street, city, state, zip] = match;
-    cleaned = `${street}, ${city}, ${state} ${zip}, UNITED STATES`;
-    modifications.push('Standardized format');
-  } else if (cleaned.indexOf('UNITED STATES') === -1 && cleaned.match(/[A-Z]{2}\s+\d{5}/)) {
-    // Add UNITED STATES if missing but contains a state/zip pattern
-    cleaned = `${cleaned}, UNITED STATES`;
-    modifications.push('Added country');
-  }
-  
-  return {
-    original,
-    cleaned,
-    modifications,
-    wasModified: original !== cleaned
-  };
 }
 
 async function main() {
@@ -198,13 +123,19 @@ async function main() {
       try {
         // Clean the address before normalization if it exists
         if (vendor.location && vendor.location.address) {
-          const { cleaned, wasModified, modifications } = cleanAddressForGeocoding(vendor.location.address);
+          const { cleaned, wasModified, modifications, extractedZip } = cleanAddressForGeocoding(vendor.location.address);
           if (wasModified) {
             logger.debug(`Cleaned address for vendor ${vendor.id || vendor.business_license || 'unknown'}:`);
             logger.debug(`  Original: "${vendor.location.address}"`);
             logger.debug(`  Cleaned:  "${cleaned}"`);
             logger.debug(`  Changes:  ${modifications.join(', ')}`);
             vendor.location.address = cleaned;
+          }
+          
+          // Add the extracted ZIP code if available
+          if (extractedZip) {
+            vendor.location.zip = extractedZip;
+            logger.debug(`  Extracted ZIP: ${extractedZip}`);
           }
         }
 

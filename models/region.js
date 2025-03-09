@@ -53,6 +53,12 @@ function extractZipCodeFromAddress(address) {
  * @returns {boolean} - True if vendor is in the region
  */
 function isVendorInRegion(vendor, region) {
+  // First check if the vendor has a zipCode field
+  if (vendor.location && vendor.location.zipCode) {
+    return region.zipCodes.includes(vendor.location.zipCode);
+  }
+  
+  // Fall back to address extraction
   if (!vendor.location || !vendor.location.address) return false;
   
   const zipCode = extractZipCodeFromAddress(vendor.location.address);
@@ -68,6 +74,15 @@ function isVendorInRegion(vendor, region) {
  * @returns {boolean} - True if vendor is in any active region
  */
 function isVendorInActiveRegion(vendor, regions) {
+  // First check if the vendor has a zipCode field
+  if (vendor.location && vendor.location.zipCode) {
+    // Check if vendor's zip code is in any active region
+    return regions
+      .filter(region => region.isActive)
+      .some(region => region.zipCodes.includes(vendor.location.zipCode));
+  }
+  
+  // Fall back to address extraction
   if (!vendor.location || !vendor.location.address) return false;
   
   const zipCode = extractZipCodeFromAddress(vendor.location.address);
@@ -86,6 +101,13 @@ function isVendorInActiveRegion(vendor, regions) {
  * @returns {Object|null} - Region object or null if not found
  */
 function getVendorRegion(vendor, regions) {
+  // First check if the vendor has a zipCode field
+  if (vendor.location && vendor.location.zipCode) {
+    // Find first region that contains this zip code
+    return regions.find(region => region.zipCodes.includes(vendor.location.zipCode)) || null;
+  }
+  
+  // Fall back to address extraction
   if (!vendor.location || !vendor.location.address) return null;
   
   const zipCode = extractZipCodeFromAddress(vendor.location.address);

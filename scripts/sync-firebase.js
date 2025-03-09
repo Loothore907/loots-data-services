@@ -12,11 +12,12 @@ require('dotenv').config();
 program
   .description('Sync vendor data to Firebase Firestore')
   .requiredOption('-i, --input <path>', 'Input JSON file with vendor data')
-  .option('-c, --collection <name>', 'Firestore collection name', 'vendors')
+  .option('-c, --collection <n>', 'Firestore collection name', 'vendors')
   .option('-b, --batch-size <number>', 'Batch size for Firestore operations', '500')
   .option('--no-merge', 'Replace documents instead of merging', false)
   .option('--dry-run', 'Validate data without writing to Firestore', false)
   .option('--cleanup', 'Remove input file after successful sync', false)
+  .option('--delete-after-sync', 'Delete input file after successful sync', false)
   .parse(process.argv);
 
 const options = program.opts();
@@ -89,7 +90,7 @@ async function main() {
       logger.info(`Sync completed successfully: ${result.stats.successful} vendors synced`);
       
       // Optionally remove the input file after successful sync
-      if (options.cleanup) {
+      if (options.cleanup || options.deleteAfterSync) {
         try {
           fs.unlinkSync(options.input);
           logger.info(`Removed original input file at ${options.input} after successful sync`);

@@ -11,6 +11,13 @@
 function cleanAddressForGeocoding(address) {
     const original = address;
     let cleaned = address;
+    let extractedZip = null;
+    
+    // Extract ZIP code before cleaning
+    const zipMatch = address.match(/\b(\d{5})(?:-\d{4})?\b/);
+    if (zipMatch) {
+        extractedZip = zipMatch[1];
+    }
     
     // Track modifications made
     const modifications = [];
@@ -68,9 +75,25 @@ function cleanAddressForGeocoding(address) {
       }
     }
     
+    // Ensure we have a standard format by keeping only the main parts if possible
+    const mainAddressPattern = /^([^,]+),\s*([^,]+),\s*([A-Z]{2})\s*(\d{5})/;
+    const match = cleaned.match(mainAddressPattern);
+    
+    if (match) {
+      // If it matches the standard pattern, reformulate to ensure consistency
+      const [_, street, city, state, zip] = match;
+      cleaned = `${street}, ${city}, ${state} ${zip}, UNITED STATES`;
+      modifications.push('Standardized format');
+    } else if (cleaned.indexOf('UNITED STATES') === -1 && cleaned.match(/[A-Z]{2}\s+\d{5}/)) {
+      // Add UNITED STATES if missing but contains a state/zip pattern
+      cleaned = `${cleaned}, UNITED STATES`;
+      modifications.push('Added country');
+    }
+    
     return {
       original,
       cleaned,
+      extractedZip,
       modifications,
       wasModified: original !== cleaned
     };

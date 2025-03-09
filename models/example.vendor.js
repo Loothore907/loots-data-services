@@ -9,6 +9,8 @@ const vendorSchema = Joi.object({
   status: Joi.string().allow(null, ''),
   location: Joi.object({
     address: Joi.string().required(),
+    originalAddress: Joi.string().allow(null, ''),
+    zipCode: Joi.string().pattern(/^\d{5}$/).allow(null),
     latitude: Joi.number().allow(null),
     longitude: Joi.number().allow(null)
   }).required(),

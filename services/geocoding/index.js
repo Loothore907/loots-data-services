@@ -215,8 +215,9 @@ async function batchGeocodeVendors(vendors, options = {}) {
         return {
           ...vendor,
           location: {
-            ...vendor.location,
+            ...vendor.location, // This preserves the zipCode field from preprocessing
             address: geocodeResult.data.formattedAddress || vendor.location.address,
+            originalAddress: vendor.location.address, // preserve original
             coordinates: geocodeResult.data.coordinates
           },
           hasValidCoordinates: true

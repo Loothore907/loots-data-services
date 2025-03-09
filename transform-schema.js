@@ -24,21 +24,19 @@ try {
     
     // Fix location structure
     if (transformed.location) {
-      const { latitude, longitude, formattedAddress, ...otherLocationProps } = transformed.location;
+      const { latitude, longitude, formattedAddress, originalAddress, zipCode, zip, ...otherLocationProps } = transformed.location;
       
       // Replace with the correct structure
       transformed.location = {
         ...otherLocationProps,
+        address: formattedAddress || otherLocationProps.address,
+        originalAddress: originalAddress || otherLocationProps.address,
+        zipCode: zipCode || zip || null, // preserve zip code, handle both field names
         coordinates: {
           latitude: latitude,
           longitude: longitude
         }
       };
-      
-      // If needed, update address with formatted address
-      if (formattedAddress && !transformed.location.address) {
-        transformed.location.address = formattedAddress;
-      }
     }
     
     // Add other missing required fields with default values
