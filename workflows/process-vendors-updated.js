@@ -1,13 +1,78 @@
 // workflows/process-vendors-updated.js
 const fs = require('fs');
 const path = require('path');
+const Joi = require('joi');
 const { normalizeVendor, validateVendor } = require('../models/vendor');
 const { batchGeocodeVendors } = require('../services/geocoding');
 const { syncVendorsToFirestore } = require('../services/firebase');
 const { isPriorityVendor, getVendorRegion } = require('../config/priority-regions');
 const { cleanAddressForGeocoding } = require('../utils/address-cleaner');
 const { validateVendorCoordinates } = require('../utils/coordinate-validator');
+const { fetchRegionsFromFirestore } = require('../models/region');
 const logger = require('../utils/logger');
+
+/**
+ * Enhanced vendor schema with region information
+ */
+const vendorSchemaWithRegion = Joi.object({
+  // Existing schema elements
+  id: Joi.alternatives().try(Joi.string(), Joi.number()).required(),
+  business_license: Joi.string().allow(null, ''),
+  name: Joi.string().required(),
+  license_type: Joi.string().allow(null, ''),
+  status: Joi.string().allow(null, ''),
+  location: Joi.object({
+    address: Joi.string().required(),
+    originalAddress: Joi.string().allow(null, ''),
+    zipCode: Joi.string().pattern(/^\d{5}$/).allow(null),
+    coordinates: Joi.object({
+      latitude: Joi.number().allow(null),
+      longitude: Joi.number().allow(null)
+    }).required()
+  }).required(),
+  contact: Joi.object({
+    phone: Joi.string().allow(null, ''),
+    email: Joi.string().email().allow(null, ''),
+    social: Joi.object({
+      instagram: Joi.string().allow(null, ''),
+      facebook: Joi.string().allow(null, '')
+    }).optional()
+  }).required(),
+  
+  // New region-related fields
+  regionInfo: Joi.object({
+    regionId: Joi.string().allow(null, ''),
+    regionName: Joi.string().allow(null, ''),
+    isActiveRegion: Joi.boolean().default(false),
+    isPriorityRegion: Joi.boolean().default(false),
+    lastRegionCheck: Joi.string().allow(null)  // ISO date string
+  }).optional(),
+  
+  // Existing schema elements (continued)
+  hours: Joi.object().pattern(
+    Joi.string(),
+    Joi.object({
+      open: Joi.string().allow(null, ''),
+      close: Joi.string().allow(null, '')
+    })
+  ).optional(),
+  deals: Joi.array().items(Joi.object()).optional(),
+  isPartner: Joi.boolean().default(false),
+  rating: Joi.number().allow(null),
+  lastUpdated: Joi.string().allow(null),
+  hasValidCoordinates: Joi.boolean().default(false)
+});
+
+/**
+ * Extracts zip code from address string
+ * @param {string} address - Address string to extract from
+ * @returns {string|null} - Extracted ZIP code or null
+ */
+function extractZipCodeFromAddress(address) {
+  if (!address) return null;
+  const zipMatch = address.match(/\b(\d{5})(?:-\d{4})?\b/);
+  return zipMatch ? zipMatch[1] : null;
+}
 
 /**
  * Extracts zip code from address and adds it as a separate field in vendor object
@@ -351,107 +416,70 @@ async function processVendors(options) {
       logger.info(`Verified zip codes after geocoding`);
     }
     
-    // Archive geocoded vendors (both valid and invalid)
-    const geocodedDir = path.join('./data/processed', 'geocoded');
-    if (!fs.existsSync(geocodedDir)) {
-      fs.mkdirSync(geocodedDir, { recursive: true });
-    }
+    // STEP 7: Fetch regions from Firestore
+    logger.info('Fetching regions from Firestore...');
+    const regionsResult = await fetchRegionsFromFirestore();
     
-    const geocodeArchiveDir = path.join(geocodedDir, 'archive');
-    if (!fs.existsSync(geocodeArchiveDir)) {
-      fs.mkdirSync(geocodeArchiveDir, { recursive: true });
-    }
-    
-    // Archive valid coordinates
-    const validGeocodePath = path.join(geocodedDir, 'geocoded-valid-latest.json');
-    fs.writeFileSync(validGeocodePath, JSON.stringify(validVendors, null, 2));
-    
-    const archiveValidPath = path.join(geocodeArchiveDir, `geocoded-valid-${timestamp}.json`);
-    fs.writeFileSync(archiveValidPath, JSON.stringify(validVendors, null, 2));
-    logger.info(`Archived ${validVendors.length} successfully geocoded vendors to ${archiveValidPath}`);
-    
-    // Delete the processed file after archiving
-    if (deleteAfterArchive) {
-      fs.unlinkSync(validGeocodePath);
-      logger.info(`Deleted processed file after archiving: ${validGeocodePath}`);
-    }
-    
-    // Save invalid coordinates to separate file
-    if (invalidVendors.length > 0) {
-      const invalidGeocodePath = path.join(geocodedDir, 'geocoded-invalid-latest.json');
-      fs.writeFileSync(invalidGeocodePath, JSON.stringify(invalidVendors.map(iv => iv.vendor), null, 2));
+    if (!regionsResult.success) {
+      logger.warn(`Failed to fetch regions: ${regionsResult.error}. Proceeding without region enhancement.`);
+      // Continue with existing workflow
+    } else {
+      const regions = regionsResult.regions;
+      logger.info(`Fetched ${regions.length} regions`);
       
-      const archiveInvalidPath = path.join(geocodeArchiveDir, `geocoded-invalid-${timestamp}.json`);
-      fs.writeFileSync(archiveInvalidPath, JSON.stringify(invalidVendors, null, 2));
-      logger.info(`Archived ${invalidVendors.length} vendors with invalid coordinates to ${archiveInvalidPath}`);
+      // STEP 8: Enhance vendors with region information
+      logger.info('Enhancing vendors with region information...');
+      validVendors = enhanceVendorsWithRegionInfo(validVendors, regions);
       
-      // Delete the processed file after archiving
-      if (deleteAfterArchive) {
-        fs.unlinkSync(invalidGeocodePath);
-        logger.info(`Deleted processed file after archiving: ${invalidGeocodePath}`);
+      // STEP 9: Categorize vendors by region
+      logger.info('Categorizing vendors by region...');
+      const categorizedVendors = categorizeVendorsByRegion(validVendors);
+      
+      // Log categorization results
+      logger.info(`Categorization results: ${categorizedVendors.activeVendors.length} active, ${categorizedVendors.priorityOnlyVendors.length} priority-only, ${categorizedVendors.otherVendors.length} other`);
+      
+      // Save categorized vendors if requested
+      if (options.saveCategorized) {
+        saveCategorizedVendors(categorizedVendors, options.output);
       }
-    }
-    
-    // STEP 7: Transform Schema
-    logger.info('Transforming vendor schema for Firebase');
-    const syncReadyVendors = [];
-    const schemaErrors = [];
-    
-    for (const vendor of validVendors) {
-      // Ensure the location structure is correct for Firebase
-      const processedVendor = {
-        ...vendor,
-        location: {
-          address: vendor.location.originalAddress || vendor.location.address,
-          zipCode: vendor.location.zipCode,
-          coordinates: {
-            latitude: vendor.location.coordinates?.latitude,
-            longitude: vendor.location.coordinates?.longitude
-          }
+      
+      // Sync to Firebase if not skipped
+      if (!options.skipSync) {
+        logger.info('Syncing categorized vendors to Firestore...');
+        const syncResults = await syncCategorizedVendors(categorizedVendors, {
+          merge: options.merge || false
+        });
+        
+        // Log sync results
+        logger.info('Sync Results:');
+        logger.info(`Active Region Vendors: ${syncResults.activeSync.stats.successful} synced, ${syncResults.activeSync.stats.failed} failed`);
+        logger.info(`Priority-Only Region Vendors: ${syncResults.prioritySync.stats.successful} synced, ${syncResults.prioritySync.stats.failed} failed`);
+        logger.info(`Other Vendors: ${syncResults.otherSync.stats.successful} synced, ${syncResults.otherSync.stats.failed} failed`);
+        
+        // Delete input file after sync if requested
+        if (options.deleteAfterSync && fs.existsSync(options.input)) {
+          fs.unlinkSync(options.input);
+          logger.info(`Deleted input file after sync: ${options.input}`);
+        }
+      }
+      
+      // Return comprehensive results
+      return {
+        success: true,
+        stats: {
+          total: vendors.length,
+          valid: validVendors.length,
+          active: categorizedVendors.activeVendors.length,
+          priorityOnly: categorizedVendors.priorityOnlyVendors.length,
+          other: categorizedVendors.otherVendors.length,
+          invalid: invalidVendors.length,
+          geocodeFailed: geocodeResult.failures?.length || 0,
+          coordinateInvalid: invalidVendors.length
         }
       };
-      
-      // Remove any fields not in schema
-      if (processedVendor.location.originalAddress) {
-        delete processedVendor.location.originalAddress;
-      }
-      if (processedVendor.location.formattedAddress) {
-        delete processedVendor.location.formattedAddress;
-      }
-      
-      // Validate against schema
-      const { error } = validateVendor(processedVendor);
-      
-      if (error) {
-        logger.warn(`Schema validation error for vendor ${vendor.id}: ${error.message}`);
-        schemaErrors.push({ vendor: processedVendor, errors: error.details });
-      } else {
-        syncReadyVendors.push(processedVendor);
-      }
     }
     
-    logger.info(`Schema validation: ${syncReadyVendors.length} valid, ${schemaErrors.length} invalid`);
-    
-    // Save finalized vendors regardless of sync
-    const outputDir = path.dirname(output);
-    if (!fs.existsSync(outputDir)) {
-      fs.mkdirSync(outputDir, { recursive: true });
-    }
-    
-    fs.writeFileSync(output, JSON.stringify(syncReadyVendors, null, 2));
-    logger.info(`Saved ${syncReadyVendors.length} finalized vendors to ${output}`);
-    
-    // Archive finalized vendors
-    const finalDir = path.join(outputDir, 'archive');
-    if (!fs.existsSync(finalDir)) {
-      fs.mkdirSync(finalDir, { recursive: true });
-    }
-    
-    const archiveFinalPath = path.join(finalDir, `${path.basename(output, '.json')}_${timestamp}.json`);
-    fs.writeFileSync(archiveFinalPath, JSON.stringify(syncReadyVendors, null, 2));
-    logger.info(`Archived ${syncReadyVendors.length} finalized vendors to ${archiveFinalPath}`);
-    
-    // STEP 8: Check for pending secondary workflow and optionally sync to Firebase
+    // STEP 10: Check for pending secondary workflow and optionally sync to Firebase
     // Check for pending secondary workflow (failed geocoding)
     const pendingWorkflowCheck = () => {
       const invalidGeocodePath = path.join('./data/processed/geocoded', 'geocoded-invalid-latest.json');
@@ -479,15 +507,15 @@ async function processVendors(options) {
     // By default, we skip sync and require explicit sync command
     let syncResult = { success: true, stats: { successful: 0 } };
     
-    if (!skipSync && syncReadyVendors.length > 0) {
-      logger.info(`Syncing ${syncReadyVendors.length} vendors to Firestore (mode: ${syncMode})`);
+    if (!skipSync && validVendors.length > 0) {
+      logger.info(`Syncing ${validVendors.length} vendors to Firestore (mode: ${syncMode})`);
       
       const syncOptions = {
         collection,
         merge: syncMode !== 'overwrite'
       };
       
-      syncResult = await syncVendorsToFirestore(syncReadyVendors, syncOptions);
+      syncResult = await syncVendorsToFirestore(validVendors, syncOptions);
       
       if (!syncResult.success) {
         throw new Error(`Firebase sync failed: ${syncResult.error}`);
@@ -508,7 +536,7 @@ async function processVendors(options) {
       logger.info(`Once complete, sync the combined results with:`);
       logger.info(`  npm run sync -- --input=${output}`);
       logger.info(`===============================================================`);
-    } else if (syncReadyVendors.length > 0) {
+    } else if (validVendors.length > 0) {
       logger.info(`===============================================================`);
       logger.info(`Processing complete! To sync the results with Firebase, run:`);
       logger.info(`  node scripts/sync-firebase.js --input=${output} --no-merge`);
@@ -525,8 +553,8 @@ async function processVendors(options) {
         revoked: revokedVendors.length,
         geocoded: validVendors.length,
         invalid: invalidVendors.length,
-        schemaValid: syncReadyVendors.length,
-        schemaInvalid: schemaErrors.length,
+        schemaValid: validVendors.length,
+        schemaInvalid: invalidVendors.length,
         synced: syncResult?.stats?.successful || 0,
         pendingWorkflow: pendingWorkflow.pending ? pendingWorkflow.count : 0
       }
@@ -539,6 +567,170 @@ async function processVendors(options) {
       stats: {}
     };
   }
+}
+
+/**
+ * Enhanced function to apply region metadata to vendors
+ * @param {Array<Object>} vendors - Array of vendor objects
+ * @param {Array<Object>} regions - Array of region objects
+ * @returns {Array<Object>} - Vendors with region metadata added
+ */
+function enhanceVendorsWithRegionInfo(vendors, regions) {
+  return vendors.map(vendor => {
+    // Extract ZIP code from vendor
+    const zipCode = vendor.location?.zipCode || 
+                   (vendor.location?.address ? extractZipCodeFromAddress(vendor.location.address) : null);
+    
+    if (!zipCode) {
+      // No ZIP code found - set default region info
+      vendor.regionInfo = {
+        regionId: null,
+        regionName: 'Unknown',
+        isActiveRegion: false,
+        isPriorityRegion: false,
+        lastRegionCheck: new Date().toISOString()
+      };
+      return vendor;
+    }
+    
+    // Find matching region for this ZIP code
+    const matchedRegion = regions.find(region => 
+      region.zipCodes && region.zipCodes.includes(zipCode)
+    );
+    
+    if (matchedRegion) {
+      // Set region information based on the matched region
+      vendor.regionInfo = {
+        regionId: matchedRegion.id,
+        regionName: matchedRegion.name,
+        isActiveRegion: matchedRegion.isActive,
+        isPriorityRegion: matchedRegion.isPriority,
+        lastRegionCheck: new Date().toISOString()
+      };
+    } else {
+      // No matching region found
+      vendor.regionInfo = {
+        regionId: null,
+        regionName: 'Unknown',
+        isActiveRegion: false,
+        isPriorityRegion: false,
+        lastRegionCheck: new Date().toISOString()
+      };
+    }
+    
+    return vendor;
+  });
+}
+
+/**
+ * Enhanced function to categorize vendors into collections
+ * @param {Array<Object>} vendors - Array of vendor objects with region info
+ * @returns {Object} - Categorized vendor objects
+ */
+function categorizeVendorsByRegion(vendors) {
+  const categorized = {
+    activeVendors: [],
+    priorityOnlyVendors: [],
+    otherVendors: []
+  };
+  
+  vendors.forEach(vendor => {
+    if (vendor.regionInfo?.isActiveRegion) {
+      categorized.activeVendors.push(vendor);
+    } else if (vendor.regionInfo?.isPriorityRegion) {
+      categorized.priorityOnlyVendors.push(vendor);
+    } else {
+      categorized.otherVendors.push(vendor);
+    }
+  });
+  
+  return categorized;
+}
+
+/**
+ * Save categorized vendors to separate files
+ * @param {Object} categorizedVendors - Categorized vendor objects
+ * @param {string} basePath - Base path for output files
+ * @returns {Object} - Paths to saved files
+ */
+function saveCategorizedVendors(categorizedVendors, basePath) {
+  const baseDir = path.dirname(basePath);
+  const baseFileName = path.basename(basePath, path.extname(basePath));
+  const extension = path.extname(basePath);
+  
+  const outputPaths = {};
+  
+  // Save active vendors
+  if (categorizedVendors.activeVendors.length > 0) {
+    const activePath = path.join(baseDir, `${baseFileName}_active${extension}`);
+    fs.writeFileSync(activePath, JSON.stringify(categorizedVendors.activeVendors, null, 2));
+    logger.info(`Saved ${categorizedVendors.activeVendors.length} active vendors to ${activePath}`);
+    outputPaths.activePath = activePath;
+  }
+  
+  // Save priority-only vendors
+  if (categorizedVendors.priorityOnlyVendors.length > 0) {
+    const priorityPath = path.join(baseDir, `${baseFileName}_priority${extension}`);
+    fs.writeFileSync(priorityPath, JSON.stringify(categorizedVendors.priorityOnlyVendors, null, 2));
+    logger.info(`Saved ${categorizedVendors.priorityOnlyVendors.length} priority-only vendors to ${priorityPath}`);
+    outputPaths.priorityPath = priorityPath;
+  }
+  
+  // Save other vendors
+  if (categorizedVendors.otherVendors.length > 0) {
+    const otherPath = path.join(baseDir, `${baseFileName}_other${extension}`);
+    fs.writeFileSync(otherPath, JSON.stringify(categorizedVendors.otherVendors, null, 2));
+    logger.info(`Saved ${categorizedVendors.otherVendors.length} other vendors to ${otherPath}`);
+    outputPaths.otherPath = otherPath;
+  }
+  
+  return outputPaths;
+}
+
+/**
+ * Enhanced sync function to sync vendors based on region categorization
+ * @param {Object} categorizedVendors - Categorized vendor objects
+ * @param {Object} options - Sync options
+ * @returns {Object} - Sync results
+ */
+async function syncCategorizedVendors(categorizedVendors, options = {}) {
+  const { merge = false } = options;
+  const results = {};
+  
+  // Sync active vendors
+  if (categorizedVendors.activeVendors.length > 0) {
+    logger.info(`Syncing ${categorizedVendors.activeVendors.length} vendors to active collection: vendors`);
+    results.activeSync = await syncVendorsToFirestore(categorizedVendors.activeVendors, {
+      collection: 'vendors',
+      merge
+    });
+  } else {
+    results.activeSync = { stats: { successful: 0, failed: 0 } };
+  }
+  
+  // Sync priority-only vendors
+  if (categorizedVendors.priorityOnlyVendors.length > 0) {
+    logger.info(`Syncing ${categorizedVendors.priorityOnlyVendors.length} vendors to priority collection: priority_vendors`);
+    results.prioritySync = await syncVendorsToFirestore(categorizedVendors.priorityOnlyVendors, {
+      collection: 'priority_vendors',
+      merge
+    });
+  } else {
+    results.prioritySync = { stats: { successful: 0, failed: 0 } };
+  }
+  
+  // Sync other vendors
+  if (categorizedVendors.otherVendors.length > 0) {
+    logger.info(`Syncing ${categorizedVendors.otherVendors.length} vendors to other collection: other_vendors`);
+    results.otherSync = await syncVendorsToFirestore(categorizedVendors.otherVendors, {
+      collection: 'other_vendors',
+      merge
+    });
+  } else {
+    results.otherSync = { stats: { successful: 0, failed: 0 } };
+  }
+  
+  return results;
 }
 
 module.exports = {

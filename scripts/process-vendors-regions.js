@@ -17,13 +17,14 @@ program
   .option('--concurrency <number>', 'Number of concurrent geocoding requests', '2')
   .option('--delay <number>', 'Delay between geocoding batches in milliseconds', '200')
   .option('--skip-existing', 'Skip vendors that already have coordinates', true)
-  .option('--no-sync', 'Skip syncing to Firebase (process data only)', false)
+  .option('--sync', 'Sync to Firebase', false)
   .option('--priority-only', 'Process only vendors in priority regions', true)
   .option('--archive-non-priority', 'Archive non-priority vendors', true)
   .option('--clean-addresses', 'Clean addresses before geocoding', true)
   .option('--validate-coordinates', 'Validate coordinates after geocoding', true)  
   .option('-p, --provider <provider>', 'Geocoding provider (google, rapidapi, etc.)', '')
   .option('--dry-run', 'Validate and process data without writing to Firebase', false)
+  .option('--save-categorized', 'Save vendors categorized by region to separate files', false)
   .option('--delete-after-archive', 'Delete files after archiving', true)
   .option('--delete-after-sync', 'Delete output file after successful sync', true)
   .parse(process.argv);
@@ -56,6 +57,7 @@ async function main() {
       provider: options.provider,
       skipExistingCoordinates: options.skipExisting,
       skipSync: !options.sync || options.dryRun,
+      saveCategorized: options.saveCategorized,
       deleteAfterArchive: options.deleteAfterArchive,
       deleteAfterSync: options.deleteAfterSync
     };

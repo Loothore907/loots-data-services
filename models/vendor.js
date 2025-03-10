@@ -1,6 +1,7 @@
+// models/vendor.js - Enhanced with region integration
 const Joi = require('joi');
 
-// Define schema based on the app's Schema.js
+// Define enhanced schema with region information
 const vendorSchema = Joi.object({
   id: Joi.alternatives().try(Joi.string(), Joi.number()).required(),
   business_license: Joi.string().allow(null, ''),
@@ -24,6 +25,14 @@ const vendorSchema = Joi.object({
       facebook: Joi.string().allow(null, '')
     }).optional()
   }).required(),
+  // New region-related fields
+  regionInfo: Joi.object({
+    regionId: Joi.string().allow(null, ''),
+    regionName: Joi.string().allow(null, ''),
+    isActiveRegion: Joi.boolean().default(false),
+    isPriorityRegion: Joi.boolean().default(false),
+    lastRegionCheck: Joi.string().allow(null)  // ISO date string
+  }).optional(),
   hours: Joi.object().pattern(
     Joi.string(),
     Joi.object({
@@ -102,6 +111,17 @@ function normalizeVendor(rawVendor) {
     vendor.hasValidCoordinates = false;
   }
   
+  // Ensure regionInfo exists with defaults if not present
+  if (!vendor.regionInfo) {
+    vendor.regionInfo = {
+      regionId: null,
+      regionName: 'Unknown',
+      isActiveRegion: false,
+      isPriorityRegion: false,
+      lastRegionCheck: null
+    };
+  }
+  
   vendor.contact = vendor.contact || { phone: null };
   vendor.hours = vendor.hours || {};
   vendor.deals = vendor.deals || [];
@@ -115,8 +135,61 @@ function normalizeVendor(rawVendor) {
   return vendor;
 }
 
+/**
+ * Updates a vendor's region information
+ * @param {Object} vendor - Vendor object to update
+ * @param {Object} regionInfo - Region information object
+ * @returns {Object} - Updated vendor
+ */
+function updateVendorRegionInfo(vendor, regionInfo) {
+  // Create a deep copy to avoid mutations
+  const updatedVendor = JSON.parse(JSON.stringify(vendor));
+  
+  // Update the region information
+  updatedVendor.regionInfo = {
+    ...updatedVendor.regionInfo || {},
+    ...regionInfo,
+    lastRegionCheck: new Date().toISOString()
+  };
+  
+  return updatedVendor;
+}
+
+/**
+ * Gets a vendor's region status for filtering
+ * @param {Object} vendor - Vendor object
+ * @returns {string} - 'active', 'priority', or 'other'
+ */
+function getVendorRegionStatus(vendor) {
+  if (vendor.regionInfo?.isActiveRegion) {
+    return 'active';
+  } else if (vendor.regionInfo?.isPriorityRegion) {
+    return 'priority';
+  } else {
+    return 'other';
+  }
+}
+
+/**
+ * Filters vendors by region status
+ * @param {Array<Object>} vendors - Array of vendor objects
+ * @param {string} regionStatus - Status to filter by ('active', 'priority', 'other', 'all')
+ * @returns {Array<Object>} - Filtered vendor objects
+ */
+function filterVendorsByRegionStatus(vendors, regionStatus = 'all') {
+  if (regionStatus === 'all') return vendors;
+  
+  return vendors.filter(vendor => {
+    const status = getVendorRegionStatus(vendor);
+    return status === regionStatus;
+  });
+}
+
 module.exports = {
   validateVendor,
   normalizeVendor,
+  updateVendorRegionInfo,
+  getVendorRegionStatus,
+  filterVendorsByRegionStatus,
   vendorSchema
 };

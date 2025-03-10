@@ -1,40 +1,38 @@
 // clear-vendors.js
 const { getAdminDb } = require('./config/firebase');
+const logger = require('./utils/logger');
 
-async function clearVendorsCollection() {
+async function clearCollection(collectionName) {
+  const db = getAdminDb();
+  const batch = db.batch();
+  const snapshot = await db.collection(collectionName).get();
+  
+  logger.info(`Found ${snapshot.size} documents in ${collectionName}`);
+  
+  snapshot.docs.forEach((doc) => {
+    batch.delete(doc.ref);
+  });
+  
+  await batch.commit();
+  logger.info(`Cleared ${snapshot.size} documents from ${collectionName}`);
+}
+
+async function clearAllVendors() {
   try {
-    const db = getAdminDb();
-    const vendorsRef = db.collection('vendors');
+    // Clear main vendors collection
+    await clearCollection('vendors');
     
-    // Get all documents in the collection
-    const snapshot = await vendorsRef.get();
+    // Clear priority vendors collection
+    await clearCollection('priority_vendors');
     
-    // Delete in batches (Firestore has limits on batch operations)
-    const batchSize = 500;
-    let batch = db.batch();
-    let count = 0;
+    // Optionally clear other_vendors collection if you have one
+    // await clearCollection('other_vendors');
     
-    snapshot.forEach(doc => {
-      batch.delete(doc.ref);
-      count++;
-      
-      // Commit when batch size is reached
-      if (count >= batchSize) {
-        batch.commit();
-        batch = db.batch();
-        count = 0;
-      }
-    });
-    
-    // Commit any remaining deletes
-    if (count > 0) {
-      await batch.commit();
-    }
-    
-    console.log(`Deleted ${snapshot.size} vendors from collection`);
+    logger.info('Successfully cleared all vendor collections');
   } catch (error) {
-    console.error('Error clearing vendors collection:', error);
+    logger.error('Error clearing vendors:', error);
+    process.exit(1);
   }
 }
 
-clearVendorsCollection();
+clearAllVendors();
