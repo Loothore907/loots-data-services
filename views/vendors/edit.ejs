@@ -78,32 +78,32 @@
           
           <div class="col-12">
             <label for="address" class="form-label">Address*</label>
-            <input type="text" class="form-control <%= errors.address ? 'is-invalid' : '' %>" 
-                  id="address" name="address" 
+            <input type="text" class="form-control <%= errors['location.address'] ? 'is-invalid' : '' %>" 
+                  id="address" name="location[address]" 
                   value="<%= vendor.location ? vendor.location.address : '' %>" 
                   required>
-            <% if (errors.address) { %>
-              <div class="invalid-feedback"><%= errors.address %></div>
+            <% if (errors['location.address']) { %>
+              <div class="invalid-feedback"><%= errors['location.address'] %></div>
             <% } %>
           </div>
           
           <div class="col-md-6">
             <label for="latitude" class="form-label">Latitude</label>
-            <input type="number" step="any" class="form-control <%= errors.latitude ? 'is-invalid' : '' %>" 
-                  id="latitude" name="latitude" 
+            <input type="number" step="any" class="form-control <%= errors['location.coordinates.latitude'] ? 'is-invalid' : '' %>" 
+                  id="latitude" name="location[coordinates][latitude]" 
                   value="<%= vendor.location && vendor.location.coordinates ? vendor.location.coordinates.latitude : '' %>">
-            <% if (errors.latitude) { %>
-              <div class="invalid-feedback"><%= errors.latitude %></div>
+            <% if (errors['location.coordinates.latitude']) { %>
+              <div class="invalid-feedback"><%= errors['location.coordinates.latitude'] %></div>
             <% } %>
           </div>
           
           <div class="col-md-6">
             <label for="longitude" class="form-label">Longitude</label>
-            <input type="number" step="any" class="form-control <%= errors.longitude ? 'is-invalid' : '' %>" 
-                  id="longitude" name="longitude" 
+            <input type="number" step="any" class="form-control <%= errors['location.coordinates.longitude'] ? 'is-invalid' : '' %>" 
+                  id="longitude" name="location[coordinates][longitude]" 
                   value="<%= vendor.location && vendor.location.coordinates ? vendor.location.coordinates.longitude : '' %>">
-            <% if (errors.longitude) { %>
-              <div class="invalid-feedback"><%= errors.longitude %></div>
+            <% if (errors['location.coordinates.longitude']) { %>
+              <div class="invalid-feedback"><%= errors['location.coordinates.longitude'] %></div>
             <% } %>
           </div>
           
@@ -118,21 +118,21 @@
           
           <div class="col-md-6">
             <label for="phone" class="form-label">Phone</label>
-            <input type="tel" class="form-control <%= errors.phone ? 'is-invalid' : '' %>" 
-                  id="phone" name="phone" 
+            <input type="tel" class="form-control <%= errors['contact.phone'] ? 'is-invalid' : '' %>" 
+                  id="phone" name="contact[phone]" 
                   value="<%= vendor.contact ? vendor.contact.phone : '' %>">
-            <% if (errors.phone) { %>
-              <div class="invalid-feedback"><%= errors.phone %></div>
+            <% if (errors['contact.phone']) { %>
+              <div class="invalid-feedback"><%= errors['contact.phone'] %></div>
             <% } %>
           </div>
           
           <div class="col-md-6">
             <label for="email" class="form-label">Email</label>
-            <input type="email" class="form-control <%= errors.email ? 'is-invalid' : '' %>" 
-                  id="email" name="email" 
+            <input type="email" class="form-control <%= errors['contact.email'] ? 'is-invalid' : '' %>" 
+                  id="email" name="contact[email]" 
                   value="<%= vendor.contact ? vendor.contact.email : '' %>">
-            <% if (errors.email) { %>
-              <div class="invalid-feedback"><%= errors.email %></div>
+            <% if (errors['contact.email']) { %>
+              <div class="invalid-feedback"><%= errors['contact.email'] %></div>
             <% } %>
           </div>
           
@@ -140,22 +140,22 @@
             <label for="instagram" class="form-label">Instagram</label>
             <div class="input-group">
               <span class="input-group-text">@</span>
-              <input type="text" class="form-control <%= errors.instagram ? 'is-invalid' : '' %>" 
-                    id="instagram" name="instagram" 
+              <input type="text" class="form-control <%= errors['contact.social.instagram'] ? 'is-invalid' : '' %>" 
+                    id="instagram" name="contact[social][instagram]" 
                     value="<%= vendor.contact && vendor.contact.social ? vendor.contact.social.instagram : '' %>">
-              <% if (errors.instagram) { %>
-                <div class="invalid-feedback"><%= errors.instagram %></div>
+              <% if (errors['contact.social.instagram']) { %>
+                <div class="invalid-feedback"><%= errors['contact.social.instagram'] %></div>
               <% } %>
             </div>
           </div>
           
           <div class="col-md-6">
             <label for="facebook" class="form-label">Facebook</label>
-            <input type="text" class="form-control <%= errors.facebook ? 'is-invalid' : '' %>" 
-                  id="facebook" name="facebook" 
+            <input type="text" class="form-control <%= errors['contact.social.facebook'] ? 'is-invalid' : '' %>" 
+                  id="facebook" name="contact[social][facebook]" 
                   value="<%= vendor.contact && vendor.contact.social ? vendor.contact.social.facebook : '' %>">
-            <% if (errors.facebook) { %>
-              <div class="invalid-feedback"><%= errors.facebook %></div>
+            <% if (errors['contact.social.facebook']) { %>
+              <div class="invalid-feedback"><%= errors['contact.social.facebook'] %></div>
             <% } %>
           </div>
           
@@ -174,9 +174,17 @@
                 <!-- Hours will be added dynamically -->
               </div>
               
-              <button type="button" id="addHoursBtn" class="btn btn-sm btn-outline-primary mt-2">
-                <i class="bi bi-plus-circle"></i> Add Hours
-              </button>
+              <div class="d-flex gap-2 mt-2">
+                <button type="button" id="addHoursBtn" class="btn btn-sm btn-outline-primary">
+                  <i class="bi bi-plus-circle"></i> Add Hours
+                </button>
+                <button type="button" id="copyMondayBtn" class="btn btn-sm btn-outline-secondary">
+                  <i class="bi bi-files"></i> Copy Monday to All Days
+                </button>
+              </div>
+              
+              <!-- Hours Summary -->
+              <div class="mt-3 small text-muted" id="hoursSummary"></div>
             </div>
             
             <!-- Hidden field to store JSON representation of hours -->
@@ -239,7 +247,7 @@
     map.on('click', function(e) {
       const { lat, lng } = e.latlng;
       
-      // Update form fields
+      // Update form fields with the new name format
       document.getElementById('latitude').value = lat.toFixed(6);
       document.getElementById('longitude').value = lng.toFixed(6);
       
@@ -276,7 +284,7 @@
         if (data && data.length > 0) {
           const { lat, lon } = data[0];
           
-          // Update form fields
+          // Update form fields with the new name format
           document.getElementById('latitude').value = parseFloat(lat);
           document.getElementById('longitude').value = parseFloat(lon);
           
@@ -304,6 +312,7 @@
     // Handle hours editor
     const hoursContainer = document.getElementById('hoursContainer');
     const addHoursBtn = document.getElementById('addHoursBtn');
+    const copyMondayBtn = document.getElementById('copyMondayBtn');
     const hoursInput = document.getElementById('hours');
     
     function updateHoursJson() {
@@ -320,7 +329,92 @@
       });
       
       hoursInput.value = JSON.stringify(hours);
+      
+      // Update the hours summary
+      updateHoursSummary(hours);
+      
+      return hours; // Return hours for use in other functions
     }
+    
+    function updateHoursSummary(hours) {
+      const dayNames = {
+        'monday': 'Monday', 
+        'tuesday': 'Tuesday', 
+        'wednesday': 'Wednesday',
+        'thursday': 'Thursday', 
+        'friday': 'Friday', 
+        'saturday': 'Saturday', 
+        'sunday': 'Sunday'
+      };
+      
+      const summaryEl = document.getElementById('hoursSummary');
+      const days = Object.keys(hours);
+      
+      if (days.length === 0) {
+        summaryEl.innerHTML = '<i class="bi bi-exclamation-triangle text-warning"></i> No hours set';
+        return;
+      }
+      
+      const missingDays = Object.keys(dayNames).filter(day => !hours[day]);
+      
+      if (missingDays.length === 0) {
+        summaryEl.innerHTML = '<i class="bi bi-check-circle text-success"></i> All days populated';
+      } else {
+        summaryEl.innerHTML = '<i class="bi bi-info-circle"></i> Days set: ' + 
+          days.map(d => dayNames[d]).join(', ') +
+          '<br><i class="bi bi-exclamation-triangle text-warning"></i> Missing: ' +
+          missingDays.map(d => dayNames[d]).join(', ');
+      }
+    }
+    
+    // Handle the "Copy Monday to All Days" button
+    copyMondayBtn.addEventListener('click', function() {
+      const hours = updateHoursJson(); // Get current hours
+      const mondayHours = hours['monday'];
+      
+      if (!mondayHours) {
+        // Check if there's an empty Monday row
+        let mondayRow = null;
+        const rows = document.querySelectorAll('.hours-row');
+        
+        for (const row of rows) {
+          const day = row.querySelector('.day-select').value;
+          if (day === '') {
+            // Use an empty row
+            row.querySelector('.day-select').value = 'monday';
+            mondayRow = row;
+            break;
+          }
+        }
+        
+        if (!mondayRow) {
+          // Create a new Monday row
+          mondayRow = createHoursRow('monday', '', '');
+          hoursContainer.appendChild(mondayRow);
+        }
+        
+        alert("Please set Monday's open and close times first, then click 'Copy Monday to All Days' again");
+        return;
+      }
+      
+      // Clear existing hours rows except Monday
+      const rows = document.querySelectorAll('.hours-row');
+      rows.forEach(row => {
+        const day = row.querySelector('.day-select').value;
+        if (day !== 'monday') {
+          row.remove();
+        }
+      });
+      
+      // Add all weekdays with Monday's hours
+      const daysOfWeek = ['tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+      daysOfWeek.forEach(day => {
+        hoursContainer.appendChild(createHoursRow(day, mondayHours.open, mondayHours.close));
+      });
+      
+      // Update the hidden input
+      updateHoursJson();
+    });
     
     function createHoursRow(day = '', open = '', close = '') {
       const row = document.createElement('div');
@@ -370,6 +464,9 @@
       Object.entries(hours).forEach(([day, times]) => {
         hoursContainer.appendChild(createHoursRow(day, times.open, times.close));
       });
+      
+      // Initialize the hours summary
+      updateHoursSummary(hours);
     } catch (e) {
       console.error('Error parsing hours:', e);
     }
@@ -383,6 +480,26 @@
     if (hoursContainer.children.length === 0) {
       hoursContainer.appendChild(createHoursRow());
     }
+    
+    // Handle form submission to ensure data is updated
+    const vendorForm = document.getElementById('vendorForm');
+    vendorForm.addEventListener('submit', function(event) {
+      // Make sure the hours data is up to date
+      updateHoursJson();
+      
+      // Make sure coordinates are properly formatted if present
+      const lat = document.getElementById('latitude').value;
+      const lng = document.getElementById('longitude').value;
+      
+      if (lat && lng) {
+        try {
+          document.getElementById('latitude').value = parseFloat(lat);
+          document.getElementById('longitude').value = parseFloat(lng);
+        } catch (e) {
+          console.error('Error parsing coordinates:', e);
+        }
+      }
+    });
     
     // Handle deals editor
     const dealsContainer = document.getElementById('dealsContainer');

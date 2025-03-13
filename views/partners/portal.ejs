@@ -1,0 +1,65 @@
+<%- include('../partials/header') %>
+
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Partner Portal</h1>
+    <% if (vendor) { %>
+      <a href="/vendors/<%= vendor.id %>" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Back to Vendor
+      </a>
+    <% } else { %>
+      <a href="/vendors" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Back to Vendors
+      </a>
+    <% } %>
+  </div>
+
+  <% if (vendor) { %>
+    <div class="alert alert-success mb-4">
+      <h4><i class="bi bi-shop me-2"></i> <%= vendor.name %></h4>
+      <p class="mb-0">Welcome to the partner portal for <%= vendor.name %>.</p>
+    </div>
+  <% } %>
+
+  <div class="card">
+    <div class="card-body">
+      <h5 class="card-title">Featured Partner Benefits</h5>
+      <p>As a featured partner, you have access to the following benefits:</p>
+      
+      <div class="row g-4 mt-2">
+        <div class="col-md-4">
+          <div class="card h-100">
+            <div class="card-body">
+              <h5 class="card-title"><i class="bi bi-graph-up text-success me-2"></i> Enhanced Analytics</h5>
+              <p class="card-text">Access detailed analytics on user engagement with your business profile and deals.</p>
+            </div>
+          </div>
+        </div>
+        
+        <div class="col-md-4">
+          <div class="card h-100">
+            <div class="card-body">
+              <h5 class="card-title"><i class="bi bi-megaphone text-primary me-2"></i> Featured Placement</h5>
+              <p class="card-text">Your business appears at the top of search results and recommendations in the app.</p>
+            </div>
+          </div>
+        </div>
+        
+        <div class="col-md-4">
+          <div class="card h-100">
+            <div class="card-body">
+              <h5 class="card-title"><i class="bi bi-lightning text-warning me-2"></i> Priority Support</h5>
+              <p class="card-text">Get faster responses and dedicated support for your business needs.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="alert alert-info mt-4">
+        <i class="bi bi-info-circle me-2"></i> This is a placeholder for the partner portal. Additional functionality will be implemented soon.
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/footer') %> 

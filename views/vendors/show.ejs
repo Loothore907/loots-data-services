@@ -28,9 +28,45 @@
     </div>
   </div>
 
+  <% if (vendor.isPartner) { %>
+    <div class="card bg-primary text-white mb-4">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <h4 class="mb-1"><i class="bi bi-star-fill me-2"></i> Featured Partner</h4>
+            <p class="mb-0">This vendor is a featured partner in the Loot's Ganja Guide app.</p>
+          </div>
+          <a href="/partners/portal?vendorId=<%= vendor.id %>" class="btn btn-light">
+            Access Partner Portal <i class="bi bi-arrow-right"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+  <% } %>
+
   <div class="row g-4">
     <!-- Main Vendor Info -->
     <div class="col-lg-4">
+      <% if (vendor.isPartner) { %>
+      <!-- Featured Partner Card -->
+      <div class="card mb-4 border-warning">
+        <div class="card-header bg-warning text-dark">
+          <h5 class="card-title mb-0">
+            <i class="bi bi-star-fill"></i> Featured Partner
+          </h5>
+        </div>
+        <div class="card-body">
+          <p>This vendor is featured in the Loot's app and receives premium placement in search results.</p>
+          <% if (vendor.partnerStatusLastChangedAt) { %>
+            <p class="small text-muted">Featured since: <%= new Date(vendor.partnerStatusLastChangedAt).toLocaleDateString() %></p>
+          <% } %>
+          <a href="/partners/dashboard?vendor=<%= vendor.id %>" class="btn btn-warning">
+            <i class="bi bi-speedometer2"></i> Partner Portal
+          </a>
+        </div>
+      </div>
+      <% } %>
+      
       <div class="card mb-4">
         <div class="card-header">
           <h5 class="card-title">Basic Information</h5>
@@ -123,47 +159,36 @@
         <div class="card-body">
           <% if (vendor.statusChanges && vendor.statusChanges.length > 0) { %>
             <div class="table-responsive">
-              <table class="table table-sm">
+              <table class="table table-striped">
                 <thead>
                   <tr>
                     <th>Date</th>
-                    <th>From</th>
-                    <th>To</th>
-                    <th>Source</th>
+                    <th>Change</th>
                     <th>Notes</th>
                   </tr>
                 </thead>
                 <tbody>
                   <% vendor.statusChanges.sort((a, b) => new Date(b.date) - new Date(a.date)).forEach(change => { %>
                     <tr>
-                      <td><%= new Date(change.date).toLocaleString() %></td>
+                      <td><%= new Date(change.date).toLocaleDateString() %> <%= new Date(change.date).toLocaleTimeString() %></td>
                       <td>
-                        <% if (change.from) { %>
-                          <span class="badge <%= getStatusBadgeClass({status: change.from}) %>"><%= change.from %></span>
+                        <% if (change.from.includes('Partner') || change.to.includes('Partner')) { %>
+                          <span class="badge bg-primary">Partner Status</span>
                         <% } else { %>
-                          <span class="text-muted">Initial</span>
+                          <span class="badge bg-secondary">License Status</span>
                         <% } %>
+                        <%= change.from || 'None' %> → <%= change.to %>
                       </td>
-                      <td>
-                        <span class="badge <%= getStatusBadgeClass({status: change.to}) %>"><%= change.to %></span>
-                      </td>
-                      <td>
-                        <% if (change.source === 'manual') { %>
-                          <span class="badge bg-info">Manual Update</span>
-                        <% } else if (change.source === 'import') { %>
-                          <span class="badge bg-secondary">Data Import</span>
-                        <% } else { %>
-                          <span class="badge bg-light text-dark"><%= change.source %></span>
-                        <% } %>
-                      </td>
-                      <td><%= change.notes || '' %></td>
+                      <td><%= change.notes || 'No notes' %></td>
                     </tr>
-                  <% }) %>
+                  <% }); %>
                 </tbody>
               </table>
             </div>
           <% } else { %>
-            <p class="text-muted mb-0">No status changes have been recorded for this vendor.</p>
+            <div class="alert alert-info">
+              No status change history recorded for this vendor.
+            </div>
           <% } %>
         </div>
       </div>

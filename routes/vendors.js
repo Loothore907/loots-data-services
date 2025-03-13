@@ -277,8 +277,35 @@ router.get('/:id/edit', async (req, res) => {
 // Create vendor
 router.post('/', async (req, res) => {
   try {
-    const vendorData = normalizeVendor(req.body);
-    const { error } = validateVendor(vendorData);
+    // Process form data
+    const vendorData = {
+      ...req.body,
+      id: 'new_vendor', // Temporary ID that will be replaced by Firestore
+      isPartner: req.body.isPartner === 'on'
+    };
+    
+    // Convert hours and deals from strings to objects if needed
+    if (typeof vendorData.hours === 'string') {
+      try {
+        vendorData.hours = JSON.parse(vendorData.hours);
+      } catch (e) {
+        vendorData.hours = {};
+        logger.warn('Error parsing hours JSON:', e);
+      }
+    }
+    
+    if (typeof vendorData.deals === 'string') {
+      try {
+        vendorData.deals = JSON.parse(vendorData.deals);
+      } catch (e) {
+        vendorData.deals = [];
+        logger.warn('Error parsing deals JSON:', e);
+      }
+    }
+    
+    // Normalize and validate
+    const normalizedVendor = normalizeVendor(vendorData);
+    const { error } = validateVendor(normalizedVendor);
     
     if (error) {
       // Fetch regions for the dropdown
@@ -292,19 +319,24 @@ router.post('/', async (req, res) => {
         });
       });
       
+      logger.warn('Vendor validation errors:', error.details);
+      
       return res.render('vendors/new', {
-        vendor: req.body,
+        vendor: normalizedVendor,
         regions: regions,
         errors: error.details.reduce((acc, curr) => {
-          acc[curr.path[0]] = curr.message;
+          acc[curr.path.join('.')] = curr.message;
           return acc;
         }, {})
       });
     }
     
+    // Remove the temporary ID before saving
+    delete normalizedVendor.id;
+    
     const db = getAdminDb();
     const docRef = await db.collection('vendors').add({
-      ...vendorData,
+      ...normalizedVendor,
       createdAt: new Date().toISOString(),
       lastUpdated: new Date().toISOString()
     });
@@ -313,19 +345,70 @@ router.post('/', async (req, res) => {
     res.redirect(`/vendors/${docRef.id}`);
   } catch (error) {
     logger.error('Error creating vendor:', error);
-    res.status(500).render('error', { error: 'Failed to create vendor' });
+    
+    // Add detailed error info for debugging
+    if (error.stack) {
+      logger.error('Error stack:', error.stack);
+    }
+    
+    // Check if it's a validation error from Firestore
+    if (error.code) {
+      logger.error('Firestore error code:', error.code);
+    }
+    
+    res.status(500).render('error', { error: 'Failed to create vendor: ' + error.message });
   }
 });
 
 // Update vendor
 router.post('/:id', async (req, res) => {
   try {
-    const vendorData = normalizeVendor(req.body);
-    const { error } = validateVendor(vendorData);
+    const db = getAdminDb();
+    
+    // Get the current vendor to track status changes
+    const vendorDoc = await db.collection('vendors').doc(req.params.id).get();
+    
+    if (!vendorDoc.exists) {
+      return res.status(404).render('error', { error: 'Vendor not found' });
+    }
+    
+    const currentVendor = vendorDoc.data();
+    const oldStatus = currentVendor.status;
+    const oldIsPartner = currentVendor.isPartner || false;
+    const newIsPartner = req.body.isPartner === 'on';
+    
+    // Add ID to the request body
+    const vendorData = {
+      ...req.body,
+      id: req.params.id,
+      isPartner: newIsPartner
+    };
+    
+    // Convert hours and deals from strings to objects if needed
+    if (typeof vendorData.hours === 'string') {
+      try {
+        vendorData.hours = JSON.parse(vendorData.hours);
+      } catch (e) {
+        vendorData.hours = {};
+        logger.warn('Error parsing hours JSON:', e);
+      }
+    }
+    
+    if (typeof vendorData.deals === 'string') {
+      try {
+        vendorData.deals = JSON.parse(vendorData.deals);
+      } catch (e) {
+        vendorData.deals = [];
+        logger.warn('Error parsing deals JSON:', e);
+      }
+    }
+    
+    // Normalize and validate
+    const normalizedVendor = normalizeVendor(vendorData);
+    const { error } = validateVendor(normalizedVendor);
     
     if (error) {
       // Fetch regions for the dropdown
-      const db = getAdminDb();
       const regionsSnapshot = await db.collection('regions').get();
       const regions = [];
       regionsSnapshot.forEach(doc => {
@@ -335,27 +418,70 @@ router.post('/:id', async (req, res) => {
         });
       });
       
+      logger.warn('Vendor validation errors:', error.details);
+      
       return res.render('vendors/edit', {
-        vendor: { ...req.body, id: req.params.id },
+        vendor: normalizedVendor,
         regions: regions,
         errors: error.details.reduce((acc, curr) => {
-          acc[curr.path[0]] = curr.message;
+          acc[curr.path.join('.')] = curr.message;
           return acc;
         }, {})
       });
     }
     
-    const db = getAdminDb();
-    await db.collection('vendors').doc(req.params.id).update({
-      ...vendorData,
+    // Track status changes
+    const updateData = {
+      ...normalizedVendor,
       lastUpdated: new Date().toISOString()
-    });
+    };
+    
+    // If license status changed, record it in statusChanges
+    if (oldStatus !== normalizedVendor.status) {
+      updateData.statusLastChangedAt = new Date().toISOString();
+      updateData.statusChanges = admin.firestore.FieldValue.arrayUnion({
+        from: oldStatus,
+        to: normalizedVendor.status,
+        date: new Date().toISOString(),
+        source: 'manual',
+        notes: 'License status updated via vendor edit'
+      });
+      
+      logger.info(`Updated vendor license status: ${req.params.id} from ${oldStatus} to ${normalizedVendor.status}`);
+    }
+    
+    // If partner status changed, record it in statusChanges
+    if (oldIsPartner !== newIsPartner) {
+      updateData.partnerStatusLastChangedAt = new Date().toISOString();
+      updateData.statusChanges = admin.firestore.FieldValue.arrayUnion({
+        from: oldIsPartner ? 'Featured Partner' : 'Regular Vendor',
+        to: newIsPartner ? 'Featured Partner' : 'Regular Vendor',
+        date: new Date().toISOString(),
+        source: 'manual',
+        notes: `Vendor ${newIsPartner ? 'marked as' : 'removed from'} featured partner status`
+      });
+      
+      logger.info(`Updated vendor partner status: ${req.params.id} from ${oldIsPartner} to ${newIsPartner}`);
+    }
+    
+    await db.collection('vendors').doc(req.params.id).update(updateData);
     
     logger.info(`Updated vendor: ${req.params.id}`);
     res.redirect(`/vendors/${req.params.id}`);
   } catch (error) {
     logger.error('Error updating vendor:', error);
-    res.status(500).render('error', { error: 'Failed to update vendor' });
+    
+    // Add detailed error info for debugging
+    if (error.stack) {
+      logger.error('Error stack:', error.stack);
+    }
+    
+    // Check if it's a validation error from Firestore
+    if (error.code) {
+      logger.error('Firestore error code:', error.code);
+    }
+    
+    res.status(500).render('error', { error: 'Failed to update vendor: ' + error.message });
   }
 });
 
