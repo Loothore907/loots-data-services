@@ -40,6 +40,14 @@ const dailyDealSchema = dealBaseSchema.keys({
 });
 
 /**
+ * Multi-Day deal schema
+ */
+const multiDayDealSchema = dealBaseSchema.keys({
+  dealType: Joi.string().valid(DealType.MULTI_DAY).required(),
+  days: Joi.array().items(Joi.string().valid(...DAYS_OF_WEEK)).min(1).required()
+});
+
+/**
  * Everyday deal schema
  */
 const everydayDealSchema = dealBaseSchema.keys({
@@ -61,6 +69,7 @@ const specialDealSchema = dealBaseSchema.keys({
 const dealSchema = Joi.alternatives().try(
   birthdayDealSchema,
   dailyDealSchema,
+  multiDayDealSchema,
   everydayDealSchema,
   specialDealSchema
 );
@@ -117,6 +126,12 @@ function normalizeDeal(rawDeal) {
   deal.createdAt = deal.createdAt || now;
   deal.updatedAt = now;
   
+  if (deal.dealType === DealType.MULTI_DAY) {
+    // Ensure days is always an array
+    deal.days = Array.isArray(deal.days) ? deal.days : 
+      (deal.days ? [deal.days] : []);
+  }
+  
   return deal;
 }
 
@@ -130,12 +145,14 @@ async function fetchDealsFromFirestore(options = {}) {
   const {
     collection = 'deals',
     limit = 100,
+    offset = 0,
     dealType,
     vendorId,
     day,
     activeOnly = true,
     orderBy = 'updatedAt',
-    orderDir = 'desc'
+    orderDir = 'desc',
+    countOnly = false  // New param to support count-only queries
   } = options;
   
   try {
@@ -159,16 +176,32 @@ async function fetchDealsFromFirestore(options = {}) {
       query = query.where('isActive', '==', true);
     }
     
-    // Apply ordering
-    query = query.orderBy(orderBy, orderDir);
-    
-    // Apply limit
-    if (limit) {
-      query = query.limit(limit);
+    // For count-only queries, we don't need ordering or limit
+    if (!countOnly) {
+      // Apply ordering
+      query = query.orderBy(orderBy, orderDir);
+      
+      // Apply limit and offset
+      if (limit) {
+        query = query.limit(limit);
+      }
+      
+      if (offset > 0) {
+        query = query.offset(offset);
+      }
     }
     
     const snapshot = await query.get();
     const deals = [];
+    
+    // For count-only queries, we don't need to process the full documents
+    if (countOnly) {
+      return {
+        success: true,
+        count: snapshot.size,
+        deals: []
+      };
+    }
     
     snapshot.forEach(doc => {
       deals.push({
@@ -267,5 +300,6 @@ module.exports = {
   birthdayDealSchema,
   dailyDealSchema,
   everydayDealSchema,
-  specialDealSchema
+  specialDealSchema,
+  multiDayDealSchema
 };

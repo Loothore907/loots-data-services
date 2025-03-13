@@ -295,12 +295,18 @@
                               <span class="badge bg-info me-2">Birthday</span>
                             <% } else if (deal.dealType === 'daily') { %>
                               <span class="badge bg-primary me-2">
-                                <%= deal.day.charAt(0).toUpperCase() + deal.day.slice(1) %>
+                                <%= deal.day ? (deal.day.charAt(0).toUpperCase() + deal.day.slice(1)) : 'Daily' %>
+                              </span>
+                            <% } else if (deal.dealType === 'multi_day') { %>
+                              <span class="badge bg-primary me-2">
+                                <%= deal.days && Array.isArray(deal.days) && deal.days.length > 0 ? 
+                                    deal.days.map(d => d.substring(0, 3)).join(', ') : 
+                                    'Multiple Days' %>
                               </span>
                             <% } else if (deal.dealType === 'special') { %>
                               <span class="badge bg-warning text-dark me-2">
-                                <%= new Date(deal.startDate).toLocaleDateString() %> - 
-                                <%= new Date(deal.endDate).toLocaleDateString() %>
+                                <%= deal.startDate ? new Date(deal.startDate).toLocaleDateString() : 'Start' %> - 
+                                <%= deal.endDate ? new Date(deal.endDate).toLocaleDateString() : 'End' %>
                               </span>
                             <% } else if (deal.dealType === 'everyday') { %>
                               <span class="badge bg-secondary me-2">Everyday</span>

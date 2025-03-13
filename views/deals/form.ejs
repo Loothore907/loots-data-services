@@ -49,7 +49,8 @@
                     id="dealType" name="dealType" required>
               <option value="">Select Deal Type</option>
               <option value="birthday" <%= deal.dealType === 'birthday' ? 'selected' : '' %>>Birthday</option>
-              <option value="daily" <%= deal.dealType === 'daily' ? 'selected' : '' %>>Daily</option>
+              <option value="daily" <%= deal.dealType === 'daily' ? 'selected' : '' %>>Daily (Single Day)</option>
+              <option value="multi_day" <%= deal.dealType === 'multi_day' ? 'selected' : '' %>>Multi-Day (Specific Days)</option>
               <option value="special" <%= deal.dealType === 'special' ? 'selected' : '' %>>Special (Date Range)</option>
               <option value="everyday" <%= deal.dealType === 'everyday' ? 'selected' : '' %>>Everyday</option>
             </select>
@@ -87,6 +88,28 @@
             </select>
             <% if (errors.day) { %>
               <div class="invalid-feedback"><%= errors.day %></div>
+            <% } %>
+          </div>
+          
+          <div class="col-md-12 deal-type-fields" id="multiDayFields" style="display: <%= deal.dealType === 'multi_day' ? 'block' : 'none' %>;">
+            <label class="form-label">Days of Week*</label>
+            <div class="row">
+              <% daysOfWeek.forEach(day => { %>
+                <div class="col-md-3 col-6">
+                  <div class="form-check mb-2">
+                    <input class="form-check-input multi-day-checkbox" type="checkbox" 
+                          id="day_<%= day %>" name="days[]" value="<%= day %>"
+                          <%= (deal.days && Array.isArray(deal.days) && deal.days.includes(day)) ? 'checked' : '' %>>
+                    <label class="form-check-label" for="day_<%= day %>">
+                      <%= day.charAt(0).toUpperCase() + day.slice(1) %>
+                    </label>
+                  </div>
+                </div>
+              <% }) %>
+            </div>
+            <div class="form-text">Select all days that this deal applies to</div>
+            <% if (errors.days) { %>
+              <div class="invalid-feedback d-block"><%= errors.days %></div>
             <% } %>
           </div>
           
@@ -219,14 +242,17 @@
     // Handle deal type change
     const dealTypeSelect = document.getElementById('dealType');
     const dailyFields = document.getElementById('dailyFields');
+    const multiDayFields = document.getElementById('multiDayFields');
     const specialFields = document.getElementById('specialFields');
     const dayField = document.getElementById('day');
     const startDateField = document.getElementById('startDate');
     const endDateField = document.getElementById('endDate');
+    const multiDayCheckboxes = document.querySelectorAll('.multi-day-checkbox');
     
     dealTypeSelect.addEventListener('change', function() {
       // Hide all conditional fields first
       dailyFields.style.display = 'none';
+      multiDayFields.style.display = 'none';
       specialFields.style.display = 'none';
       
       // Remove required attributes
@@ -240,6 +266,10 @@
           dailyFields.style.display = 'block';
           dayField.setAttribute('required', 'required');
           break;
+        case 'multi_day':
+          multiDayFields.style.display = 'block';
+          // Add validation for checkboxes
+          break;
         case 'special':
           specialFields.style.display = 'block';
           startDateField.setAttribute('required', 'required');
@@ -247,6 +277,22 @@
           break;
       }
     });
+    
+    // Add form validation for multi-day
+    const workflowForm = document.getElementById('dealForm');
+    if (workflowForm) {
+      workflowForm.addEventListener('submit', function(e) {
+        // Validate multi-day checkboxes if multi_day is selected
+        if (dealTypeSelect.value === 'multi_day') {
+          const checkedDays = document.querySelectorAll('.multi-day-checkbox:checked');
+          if (checkedDays.length === 0) {
+            e.preventDefault();
+            alert('Please select at least one day of the week');
+            return false;
+          }
+        }
+      });
+    }
     
     <% if (!isNew) { %>
     // Setup delete modal

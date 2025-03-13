@@ -33,22 +33,50 @@
       <div class="card h-100 bg-success text-white">
         <div class="card-body">
           <h5 class="card-title">Deals by Type</h5>
-          <div class="row text-center">
-            <div class="col-3">
-              <div class="fw-bold"><%= stats.byType.birthday %></div>
-              <div class="small">Birthday</div>
+          <div class="row mt-3">
+            <div class="col-6 mb-2">
+              <div class="d-flex align-items-center">
+                <span class="badge bg-light text-success me-2">
+                  <i class="bi bi-gift"></i>
+                </span>
+                <div>
+                  <div class="fw-bold"><%= stats.byType.birthday %></div>
+                  <div class="small">Birthday</div>
+                </div>
+              </div>
             </div>
-            <div class="col-3">
-              <div class="fw-bold"><%= stats.byType.daily %></div>
-              <div class="small">Daily</div>
+            <div class="col-6 mb-2">
+              <div class="d-flex align-items-center">
+                <span class="badge bg-light text-success me-2">
+                  <i class="bi bi-calendar-day"></i>
+                </span>
+                <div>
+                  <div class="fw-bold"><%= stats.byType.daily %></div>
+                  <div class="small">Daily</div>
+                </div>
+              </div>
             </div>
-            <div class="col-3">
-              <div class="fw-bold"><%= stats.byType.special %></div>
-              <div class="small">Special</div>
+            <div class="col-6 mb-2">
+              <div class="d-flex align-items-center">
+                <span class="badge bg-light text-success me-2">
+                  <i class="bi bi-calendar-event"></i>
+                </span>
+                <div>
+                  <div class="fw-bold"><%= stats.byType.special %></div>
+                  <div class="small">Special</div>
+                </div>
+              </div>
             </div>
-            <div class="col-3">
-              <div class="fw-bold"><%= stats.byType.everyday %></div>
-              <div class="small">Everyday</div>
+            <div class="col-6 mb-2">
+              <div class="d-flex align-items-center">
+                <span class="badge bg-light text-success me-2">
+                  <i class="bi bi-calendar-check"></i>
+                </span>
+                <div>
+                  <div class="fw-bold"><%= stats.byType.everyday %></div>
+                  <div class="small">Everyday</div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -190,6 +218,13 @@
                         <% if (!vendorData[deal.vendorId].isActive) { %>
                           <span class="badge bg-warning">Inactive</span>
                         <% } %>
+                        <% if (deal.isActive && vendorData[deal.vendorId].hasDealWarning) { %>
+                          <div class="mt-1">
+                            <span class="badge bg-danger">
+                              <i class="bi bi-exclamation-triangle-fill"></i> Active Deal with Inactive Vendor
+                            </span>
+                          </div>
+                        <% } %>
                       </a>
                     <% } else { %>
                       <span class="text-muted">Unknown Vendor</span>
@@ -200,6 +235,8 @@
                       <span class="badge bg-info">Birthday</span>
                     <% } else if (deal.dealType === 'daily') { %>
                       <span class="badge bg-success">Daily</span>
+                    <% } else if (deal.dealType === 'multi_day') { %>
+                      <span class="badge bg-success">Multi-Day</span>
                     <% } else if (deal.dealType === 'special') { %>
                       <span class="badge bg-warning">Special</span>
                     <% } else if (deal.dealType === 'everyday') { %>
@@ -210,12 +247,24 @@
                   <td>
                     <% if (deal.dealType === 'daily') { %>
                       <span class="badge bg-light text-dark">
-                        <%= deal.day.charAt(0).toUpperCase() + deal.day.slice(1) %>
+                        <%= deal.day ? (deal.day.charAt(0).toUpperCase() + deal.day.slice(1)) : 'No day specified' %>
                       </span>
+                    <% } else if (deal.dealType === 'multi_day') { %>
+                      <div>
+                        <% if (deal.days && Array.isArray(deal.days) && deal.days.length > 0) { %>
+                          <% deal.days.forEach(day => { %>
+                            <span class="badge bg-light text-dark me-1">
+                              <%= day.charAt(0).toUpperCase() + day.slice(1) %>
+                            </span>
+                          <% }) %>
+                        <% } else { %>
+                          <span class="badge bg-light text-dark">No days specified</span>
+                        <% } %>
+                      </div>
                     <% } else if (deal.dealType === 'special') { %>
                       <div class="small">
-                        <div><i class="bi bi-calendar-event"></i> Start: <%= new Date(deal.startDate).toLocaleDateString() %></div>
-                        <div><i class="bi bi-calendar-x"></i> End: <%= new Date(deal.endDate).toLocaleDateString() %></div>
+                        <div><i class="bi bi-calendar-event"></i> Start: <%= deal.startDate ? new Date(deal.startDate).toLocaleDateString() : 'Not set' %></div>
+                        <div><i class="bi bi-calendar-x"></i> End: <%= deal.endDate ? new Date(deal.endDate).toLocaleDateString() : 'Not set' %></div>
                       </div>
                     <% } else if (deal.dealType === 'everyday') { %>
                       <span class="badge bg-light text-dark">All Days</span>

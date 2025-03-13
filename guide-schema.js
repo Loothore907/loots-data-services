@@ -30,6 +30,7 @@ const DayOfWeek = {
 const DealType = {
   BIRTHDAY: 'birthday',
   DAILY: 'daily',
+  MULTI_DAY: 'multi_day',
   SPECIAL: 'special',
   EVERYDAY: 'everyday'
 };
